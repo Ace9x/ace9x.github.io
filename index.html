@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ace9x — Apps for drivers, dispatch and sports research</title>
+<meta name="description" content="Ace9x builds production web apps: RigRoute truck GPS and dispatch, EdgePro sports research, and Rocapulco Supreme car-service booking. Hire us for your next app.">
+<meta property="og:title" content="Ace9x — apps that ship">
+<meta property="og:image" content="https://ace9x.github.io/img/rigroute-nav.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#">Ace9x</a>
+  <nav><a href="#work">Work</a><a href="#how">How we build</a><a href="#hire" class="btn sm">Hire us</a></nav>
+</header>
+
+<section class="hero">
+  <p class="eyebrow">Independent app studio · New York</p>
+  <h1>Real apps, live today,<br>built for people on the move.</h1>
+  <p class="lede">Truck navigation and fleet dispatch, sports research, and a licensed NYC car service. All three are installable web apps with real accounts, passkey sign-in, and privacy built in.</p>
+  <div class="cta"><a class="btn" href="#hire">Start a project</a><a class="btn ghost" href="#work">See the work</a></div>
+</section>
+
+<section id="work">
+  <article class="case">
+    <div class="copy">
+      <p class="eyebrow">Logistics · Navigation</p>
+      <h2>RigRoute GPS</h2>
+      <p>Truck GPS that routes around low bridges, weight limits and hazmat restrictions, with car, cargo van and reefer modes. The dispatcher console runs the fleet: live map, load board, drag-to-assign, proof of delivery, detention timers, invoices and PDF rate-con import.</p>
+      <ul>
+        <li>Truck-legal routing by height, weight and hazmat class</li>
+        <li>Hours-of-service clock, truck stops, weather on the route</li>
+        <li>Dispatcher console with fleets kept separate by database rules</li>
+        <li>Screens lock against tapping above 5 mph; SOS always works</li>
+      </ul>
+      <a class="link" href="https://ace9x.github.io/truckers-gps/" target="_blank" rel="noopener">Open RigRoute →</a>
+    </div>
+    <div class="shots">
+      <img src="img/rigroute-nav.png" alt="RigRoute turn-by-turn navigation with grade warnings and speed limit" loading="lazy">
+      <img src="img/rigroute-stops.png" alt="RigRoute truck stops along the route" loading="lazy">
+    </div>
+    <img class="wide" src="img/rigroute-dispatch.png" alt="RigRoute dispatcher console" loading="lazy">
+  </article>
+
+  <article class="case">
+    <div class="copy">
+      <p class="eyebrow">Sports data · Research</p>
+      <h2>EdgePro</h2>
+      <p>A research desk for MLB, NFL, NBA, NHL, WNBA and more. It grades lines from live prices and keeps an honest public record. It's a research tool, not a sportsbook: it never takes bets or suggests how much to stake.</p>
+      <ul>
+        <li>Live prices graded A–D with the reasoning shown</li>
+        <li>Saying "nothing today" counts as a valid result</li>
+        <li>21+ gate, state help lines, and no tracking of your location</li>
+      </ul>
+      <a class="link" href="https://ace9x.github.io/edgepro-web/" target="_blank" rel="noopener">Open EdgePro →</a>
+    </div>
+    <div class="shots"><img src="img/edgepro.png" alt="EdgePro Today screen" loading="lazy"></div>
+  </article>
+
+  <article class="case">
+    <div class="copy">
+      <p class="eyebrow">Mobility · Licensed NYC car service</p>
+      <h2>Rocapulco Supreme</h2>
+      <p>Rider, driver and dispatch apps for a TLC-licensed base in Queens. Upfront binding quotes, a published rate card, TLC trip-record exports, and a driver license check against NYC Open Data.</p>
+      <ul>
+        <li>Upfront fares with no surge, and the rate card on the site</li>
+        <li>Monthly TLC trip-record file in the required format</li>
+        <li>English and Spanish</li>
+      </ul>
+      <a class="link" href="https://ace9x.github.io/rocapulco-supreme-web/" target="_blank" rel="noopener">Open Rocapulco Supreme →</a>
+    </div>
+    <div class="shots">
+      <img src="img/rocapulco.png" alt="Rocapulco Supreme booking screen" loading="lazy">
+      <img src="img/rocapulco-rates.png" alt="Rocapulco Supreme rate card" loading="lazy">
+    </div>
+  </article>
+</section>
+
+<section id="how" class="grid3">
+  <div><h3>Ships fast, keeps working</h3><p>Installable web apps that work offline, update themselves and run on any phone with no app store wait.</p></div>
+  <div><h3>Secure accounts</h3><p>Passkey (Face ID) and Google sign-in, row-level database security, and no secrets in the browser.</p></div>
+  <div><h3>Built for the rules</h3><p>We read the regulations, like TLC trip records and rate disclosure or 21+ gating, and build them in from the start.</p></div>
+</section>
+
+<section id="hire" class="hire">
+  <h2>Tell us about your project</h2>
+  <p>We'll reply by email, usually within two business days.</p>
+  <form id="lead" novalidate>
+    <label>Name<input name="name" required maxlength="120" autocomplete="name"></label>
+    <label>Email<input name="email" type="email" required maxlength="200" autocomplete="email"></label>
+    <label>What do you need?
+      <select name="project"><option>New app</option><option>Fleet / dispatch tools</option><option>Booking or ride app</option><option>Data or research tool</option><option>Something else</option></select>
+    </label>
+    <label>Details<textarea name="message" required minlength="5" maxlength="4000" rows="5"></textarea></label>
+    <input name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button class="btn" type="submit">Send</button>
+    <p id="status" role="status"></p>
+  </form>
+</section>
+
+<footer>© 2026 Ace9x. All rights reserved. RigRoute, EdgePro and Rocapulco Supreme are proprietary software. Screens shown are from the live apps.</footer>
+<script src="app.js"></script>
+</body>
+</html>
