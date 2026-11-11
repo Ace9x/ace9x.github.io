@@ -1,5 +1,7 @@
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm";
 import { buildEmbeds, youtubeId } from "./embeds.js";
-import { httpsUrl, isPlaceholder, paymentOptions } from "./payments.js";
+import { SUPABASE_KEY, SUPABASE_URL } from "./config.js";
+import { describeLink, httpsUrl, paymentOptions } from "./payments.js";
 
 const CART_KEY = "wickedlyfe-cart";
 
@@ -62,13 +64,14 @@ function priceLine(product, qty = 1) {
   }
   if (product.priceLabel) {
     return el("span", { class: "price" }, [
-      el("span", { class: "sample", text: "SAMPLE" }),
-      ` ${product.priceLabel}`,
+      product.sample ? el("span", { class: "sample", text: "SAMPLE" }) : "",
+      product.sample ? ` ${product.priceLabel}` : product.priceLabel,
     ]);
   }
+  const amount = money(product.price * qty);
   return el("span", { class: "price" }, [
-    el("span", { class: "sample", text: "SAMPLE" }),
-    ` ${money(product.price * qty)}`,
+    product.sample ? el("span", { class: "sample", text: "SAMPLE" }) : "",
+    product.sample ? ` ${amount}` : amount,
   ]);
 }
 
@@ -87,13 +90,17 @@ function normalizeProduct(raw) {
   if (!id || !name) return null;
   if (!soldOut && !priceLabel && price === null) return null;
   const sizes = Array.isArray(raw.sizes) && raw.sizes.length ? raw.sizes.map((size) => String(size)) : ["OS"];
+  const images = Array.isArray(raw.images) ? raw.images.map((item) => String(item)).filter(Boolean) : [];
   return {
     id,
     name,
     price,
     priceLabel,
     soldOut,
-    image: String(raw.image || ""),
+    sample: raw.sample !== false,
+    featured: Boolean(raw.featured),
+    image: String(raw.image || images[0] || ""),
+    images,
     alt: String(raw.alt || name),
     description: String(raw.description || ""),
     sizes,
@@ -268,9 +275,11 @@ function renderProducts() {
   }
   const count = $("#result-count");
   if (count) {
+    const sampleShop = state.products.length > 0 && state.products.every((item) => item.sample);
+    const noun = state.products.length === 1 ? "piece" : "pieces";
     count.textContent = query
       ? `${items.length} shown`
-      : `${state.products.length} sample ${state.products.length === 1 ? "piece" : "pieces"}`;
+      : `${state.products.length} ${sampleShop ? "sample " : ""}${noun}`;
   }
 }
 
@@ -298,7 +307,11 @@ function productCard(product, index) {
       [
         el("span", { class: "card-media" }, [
           image,
-          el("span", { class: product.soldOut ? "flag sold" : "flag", text: product.soldOut ? "Sold out" : "Sample" }),
+          product.soldOut
+            ? el("span", { class: "flag sold", text: "Sold out" })
+            : product.sample
+              ? el("span", { class: "flag", text: "Sample" })
+              : null,
           el("span", { class: "quick-label", text: product.soldOut ? "Sold out" : "Quick view" }),
         ]),
         el("span", { class: "card-name", text: product.name }),
@@ -308,14 +321,39 @@ function productCard(product, index) {
   ]);
 }
 
+function checkoutOptions(product, size) {
+  const own = paymentOptions(product, size);
+  if (own.length || product.sample) return own;
+  const brand = state.brand || {};
+  const options = [];
+  for (const value of [brand.stripe_link, brand.paypal_link]) {
+    const item = describeLink(value);
+    if (item && !options.some((option) => option.href === item.href)) options.push(item);
+  }
+  return options;
+}
+
 function fillPay(container, product, size) {
   container.replaceChildren();
   if (product.soldOut) {
     container.append(el("p", { class: "pay-note", text: "Sold out." }));
     return;
   }
-  const options = paymentOptions(product, size);
+  const options = checkoutOptions(product, size);
   if (!options.length) {
+    if (!product.sample) {
+      const ig = httpsUrl(state.brand?.instagram_url) || httpsUrl("https://www.instagram.com/wickedlyfe_inc");
+      container.append(
+        el("a", {
+          class: "btn btn-block",
+          href: ig.toString(),
+          target: "_blank",
+          rel: "noopener noreferrer",
+          text: "DM to order",
+        }),
+      );
+      return;
+    }
     container.append(
       el("p", {
         class: "pay-note",
@@ -518,14 +556,29 @@ function renderCart(focusKind, focusId, focusSize) {
           text: `${product.name} · ${formatSize(line.size)} · ×${line.qty}`,
         }),
       ]);
-      const options = paymentOptions(product, line.size);
+      const options = checkoutOptions(product, line.size);
       if (!options.length) {
-        block.append(
-          el("p", {
-            class: "pay-note",
-            text: "Payment link placeholder. Paste a Stripe or PayPal URL in data/products.json.",
-          }),
-        );
+        if (product.soldOut) {
+          block.append(el("p", { class: "pay-note", text: "Sold out." }));
+        } else if (!product.sample) {
+          const ig = httpsUrl(state.brand?.instagram_url) || httpsUrl("https://www.instagram.com/wickedlyfe_inc");
+          block.append(
+            el("a", {
+              class: "btn",
+              href: ig.toString(),
+              target: "_blank",
+              rel: "noopener noreferrer",
+              text: "DM to order",
+            }),
+          );
+        } else {
+          block.append(
+            el("p", {
+              class: "pay-note",
+              text: "Payment link placeholder. Paste a Stripe or PayPal URL in data/products.json.",
+            }),
+          );
+        }
       } else {
         options.forEach((option) => {
           block.append(
@@ -819,6 +872,105 @@ async function loadJson(path) {
   return response.json();
 }
 
+function standInImage(row) {
+  const blob = `${row.category || ""} ${row.slug || ""} ${row.name || ""}`.toLowerCase();
+  if (blob.includes("hat") || blob.includes("cap")) return "assets/products/cap.jpg";
+  if (blob.includes("hoodie")) return "assets/products/hoodie.jpg";
+  if (blob.includes("sweater") || blob.includes("crew")) return "assets/products/crewneck.jpg";
+  if (blob.includes("tee") || blob.includes("shirt")) return "assets/products/tee.jpg";
+  return "assets/products/tee.jpg";
+}
+
+function productFromRow(row) {
+  const images = Array.isArray(row.images) ? row.images.filter((item) => typeof item === "string" && item.trim()) : [];
+  const cents = row.price_cents;
+  const soldOut = Boolean(row.sold_out);
+  return normalizeProduct({
+    id: row.id,
+    name: row.name,
+    description: row.description || "",
+    alt: row.name,
+    soldOut,
+    sample: false,
+    featured: Boolean(row.featured),
+    price: cents == null ? null : cents / 100,
+    priceLabel: cents == null && !soldOut ? "Coming soon" : "",
+    image: images[0] || standInImage(row),
+    images,
+    sizes: row.sizes,
+    payments: row.buy_url ? { link: row.buy_url } : {},
+  });
+}
+
+async function loadRemote() {
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const [settingsRes, productsRes] = await Promise.all([
+    supabase.from("wl_settings").select("*").eq("id", 1).maybeSingle(),
+    supabase.from("wl_products").select("*").eq("active", true).order("sort_order", { ascending: true }),
+  ]);
+  if (settingsRes.error) throw settingsRes.error;
+  if (productsRes.error) throw productsRes.error;
+  if (!settingsRes.data) throw new Error("settings");
+  return {
+    brand: settingsRes.data,
+    products: (productsRes.data || []).map(productFromRow).filter(Boolean),
+  };
+}
+
+function applyBrand(brand) {
+  if (!brand) return;
+  state.brand = brand;
+  const tagline = $("#hero-sub");
+  if (tagline && brand.tagline) tagline.textContent = brand.tagline;
+  const bio = $("#hero-bio");
+  if (bio && brand.bio) bio.textContent = brand.bio;
+  const about = $("#about-bio");
+  if (about && brand.bio) about.textContent = brand.bio;
+  const note = $("#about-note");
+  if (note) {
+    note.textContent = "Shop photos stay as stand-ins until a picture is added. Use DM to order unless a checkout link is set.";
+  }
+  const shopNote = $("#shop-note");
+  if (shopNote) shopNote.textContent = "Coming soon means the price is not set yet. Sold out pieces stay on the page.";
+  if (brand.brand_name) {
+    document.title = `${brand.brand_name} — Apparel`;
+    document.querySelectorAll("[data-brand]").forEach((node) => {
+      node.textContent = brand.brand_name;
+    });
+  }
+  if (brand.logo_url) {
+    const shippedHeader = /logo-header\.(png|webp)(\?|$)/i.test(brand.logo_url);
+    document.querySelectorAll("[data-logo]").forEach((img) => {
+      if (shippedHeader && img.classList.contains("hero-logo")) return;
+      img.src = brand.logo_url;
+      img.closest("picture")?.querySelector("source")?.remove();
+    });
+  }
+  const listen = $("#listen-link");
+  if (listen && httpsUrl(brand.music_url)) listen.href = httpsUrl(brand.music_url).toString();
+  if (httpsUrl(brand.instagram_url)) {
+    const href = httpsUrl(brand.instagram_url).toString();
+    document.querySelectorAll('a[href*="instagram.com"]').forEach((link) => {
+      link.href = href;
+    });
+    if (Array.isArray(state.site?.socials)) {
+      state.site.socials = state.site.socials.map((item) =>
+        item.label === "Instagram" ? { ...item, href } : item,
+      );
+    }
+  }
+  if (brand.contact_email) state.site.email = String(brand.contact_email).trim();
+  if (brand.accent_color && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(brand.accent_color).trim())) {
+    document.documentElement.style.setProperty("--red", String(brand.accent_color).trim());
+  }
+  const bar = $("#announcement");
+  if (bar) {
+    const text = String(brand.announcement || "").trim();
+    bar.hidden = !text;
+    bar.textContent = text;
+  }
+}
+
 async function boot() {
   const [site, catalog, music] = await Promise.all([
     loadJson("data/site.json"),
@@ -827,10 +979,22 @@ async function boot() {
   ]);
   state.site = site && typeof site === "object" ? site : {};
   state.currency = typeof catalog.currency === "string" ? catalog.currency : "USD";
-  state.products = (catalog.products || []).map(normalizeProduct).filter(Boolean);
   state.releases = (music.releases || []).map(normalizeRelease).filter(Boolean);
   state.videos = (music.videos || []).map(normalizeVideo).filter(Boolean);
   state.activeReleaseId = state.releases.find((release) => release.featured)?.id || state.releases[0]?.id || null;
+  let remote = null;
+  try {
+    remote = await loadRemote();
+  } catch {
+    remote = null;
+  }
+  if (remote) {
+    state.products = remote.products;
+    applyBrand(remote.brand);
+  } else {
+    state.brand = null;
+    state.products = (catalog.products || []).map((item) => normalizeProduct({ ...item, sample: true })).filter(Boolean);
+  }
   state.cart = loadCart().filter(validLine);
   applySite();
   renderProducts();

@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
+    <p id="announcement" class="announcement" hidden></p>
     <a class="skip" href="#shop">Skip to the collection</a>
     <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position: absolute" aria-hidden="true">
       <symbol id="i-menu" viewBox="0 0 24 24">
@@ -60,7 +61,7 @@
           <a href="#top">
             <picture>
               <source srcset="assets/brand/logo-header.webp" type="image/webp" />
-              <img class="brand-logo" src="assets/brand/logo-header.png" alt="Wicked Lyfe Inc." width="400" height="394" />
+              <img class="brand-logo" data-logo src="assets/brand/logo-header.png" alt="Wicked Lyfe Inc." width="400" height="394" />
             </picture>
           </a>
         </h1>
@@ -86,10 +87,10 @@
         <div class="hero-lockup">
           <picture>
             <source srcset="assets/brand/logo-hero.webp" type="image/webp" />
-            <img class="hero-logo" src="assets/brand/logo-hero.png" alt="Wicked Lyfe Inc." width="1200" height="1182" />
+            <img class="hero-logo" data-logo src="assets/brand/logo-hero.png" alt="Wicked Lyfe Inc." width="1200" height="1182" />
           </picture>
-          <p class="hero-sub">Apparel · Founded by DAYxDAY</p>
-          <p class="hero-bio">Taking on everything — Music, Acting, Art, Media. We just getting started. Join the community.</p>
+          <p class="hero-sub" id="hero-sub">Apparel · Founded by DAYxDAY</p>
+          <p class="hero-bio" id="hero-bio">Taking on everything — Music, Acting, Art, Media. We just getting started. Join the community.</p>
           <picture>
             <source srcset="assets/brand/make-art-white.webp" type="image/webp" />
             <img class="tagline" src="assets/brand/make-art-white.png" alt="make art / make out / make money" width="900" height="657" />
@@ -127,7 +128,7 @@
               <h2 class="display" id="shop-title">Shop</h2>
               <p class="result-count" id="result-count">Loading sample pieces</p>
             </div>
-            <p class="section-note">Sample pieces. Every price is marked SAMPLE until a real payment link is pasted in.</p>
+            <p class="section-note" id="shop-note">Sample pieces. Every price is marked SAMPLE until a real payment link is pasted in.</p>
           </div>
           <p id="filter-status" class="sr-only" aria-live="polite"></p>
           <p id="loading-note" class="sr-only">Loading the sample collection.</p>
@@ -160,7 +161,7 @@
           <p class="eyebrow">Music from the founder</p>
           <h2 class="display" id="music-title">Music</h2>
           <p class="music-action">
-            <a class="btn" href="https://unitedmasters.com/a/dayxday" target="_blank" rel="noopener noreferrer">Listen</a>
+            <a class="btn" id="listen-link" href="https://unitedmasters.com/a/dayxday" target="_blank" rel="noopener noreferrer">Listen</a>
           </p>
           <div id="featured" class="featured" aria-live="polite"></div>
           <div id="release-list" class="release-list" aria-label="Releases"></div>
@@ -186,8 +187,8 @@
               <img class="about-mark" src="assets/brand/wli-brush.png" alt="W.L.I. EST. 2002" width="891" height="526" />
             </picture>
             <h2 class="display" id="about-title">Taking on everything.</h2>
-            <p>Taking on everything — Music, Acting, Art, Media. We just getting started. Join the community.</p>
-            <p>
+            <p id="about-bio">Taking on everything — Music, Acting, Art, Media. We just getting started. Join the community.</p>
+            <p id="about-note">
               Wicked Lyfe is apparel. The shop photos and the prices marked SAMPLE are placeholders. The overhood sweater is sold out. Graphic pieces are TBD until a payment link is added.
             </p>
           </div>
@@ -280,8 +281,8 @@
         </ul>
         <p class="fine">Sample catalog for Wicked Lyfe. Prices marked SAMPLE are not for sale until a payment link is added. Instagram @wickedlyfe_inc.</p>
         <div class="legal">
-          <span>© <span id="year">2026</span> Wicked Lyfe</span>
-          <span class="credit">Site by Ace Apps</span>
+          <span>© <span id="year">2026</span> <span data-brand>Wicked Lyfe</span></span>
+          <span class="credit">Site by Ace Apps · <a class="admin-link" href="admin/">Admin</a></span>
         </div>
       </div>
     </footer>
@@ -289,7 +290,7 @@
     <dialog id="menu-dialog" aria-label="Menu">
       <div class="menu-top">
         <p class="logo">
-          <img class="brand-logo" src="assets/brand/logo-header.webp" alt="Wicked Lyfe Inc." width="400" height="394" />
+          <img class="brand-logo" data-logo src="assets/brand/logo-header.webp" alt="Wicked Lyfe Inc." width="400" height="394" />
         </p>
         <button type="button" class="icon-btn" data-close="menu-dialog" data-autofocus aria-label="Close menu">
           <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
