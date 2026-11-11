@@ -1,6 +1,6 @@
-# Day X Day
+# Wicked Lyfe
 
-A static shop and music page for Day X Day (`@dayxday4real`). It is plain HTML, CSS, and JavaScript. No build step, no paid services, and no server. GitHub Pages can host it as-is.
+A static shop and music page for Wicked Lyfe (`@wickedlyfe_inc`). It is plain HTML, CSS, and JavaScript. No build step, no paid services, and no server. GitHub Pages can host it as-is.
 
 The clothes, prices, photos, release titles, and player slots are **samples**. Prices are labeled SAMPLE and are not a charge. Nothing is for sale until you paste a real payment link.
 
@@ -98,7 +98,7 @@ Edit `data/site.json`.
 - `email` is the address shown on the page and the address the forms open in the visitor’s email app.
 - Leave `formspreeEndpoint` as `""` to keep the mailto behavior.
 - To collect responses on the site, create a free form at [formspree.io](https://formspree.io), then paste the endpoint, for example `https://formspree.io/f/abcdwxyz`. Both the list form and the contact form post there. The “sample form” note goes away once the endpoint is set.
-- `socials` is the footer list. An empty `href` hides that network. Instagram is already set to `https://www.instagram.com/dayxday4real`.
+- `socials` is the footer list. An empty `href` hides that network. Instagram is already set to `https://www.instagram.com/wickedlyfe_inc`.
 
 The About paragraphs and the two hero photos live in `index.html`. Replace the sentences in the About section, and replace `assets/hero-night.jpg` and `assets/hero-studio.jpg` (or change the `src`) when the real campaign photos exist.
 
@@ -114,7 +114,7 @@ The About paragraphs and the two hero photos live in `index.html`. Replace the s
    - **apex** (`yourdomain.com`): A records pointing at `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, and `185.199.111.153`. Some DNS hosts let you use an ALIAS or ANAME to `USERNAME.github.io` instead.
 7. Back in Pages settings, set the custom domain and turn on **Enforce HTTPS** after the certificate is issued.
 
-Relative paths are used throughout (`css/`, `js/`, `data/`, `assets/`), so the site works from a project subpath. The sample preview is intended for `https://ace9x.github.io/dayxday/`. `index.html` includes `<meta name="robots" content="noindex">` while the catalog is still sample content. Remove that tag when the real shop should be indexed.
+Relative paths are used throughout (`css/`, `js/`, `data/`, `assets/`), so the site works from a project subpath. The sample preview is intended for `https://ace9x.github.io/wickedlyfe/`. `index.html` includes `<meta name="robots" content="noindex">` while the catalog is still sample content. Remove that tag when the real shop should be indexed.
 
 ## Fonts
 

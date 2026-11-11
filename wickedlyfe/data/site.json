@@ -1,9 +1,9 @@
 {
   "_note": "Contact address, extra social links, and the form endpoint. Leave formspreeEndpoint empty to open the visitor's email app. Paste a Formspree endpoint (https://formspree.io/f/xxxxxxxx) when you want the forms to send without email. Social hrefs that are empty are hidden.",
-  "email": "hello@dayxday.example",
+  "email": "hello@wickedlyfe.example",
   "formspreeEndpoint": "",
   "socials": [
-    { "label": "Instagram", "href": "https://www.instagram.com/dayxday4real" },
+    { "label": "Instagram", "href": "https://www.instagram.com/wickedlyfe_inc" },
     { "label": "YouTube", "href": "" },
     { "label": "TikTok", "href": "" },
     { "label": "Spotify", "href": "" }

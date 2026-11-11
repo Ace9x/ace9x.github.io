@@ -240,11 +240,11 @@ a {
 
 .logo {
   margin: 0;
-  font-family: var(--blackletter);
-  font-weight: 400;
+  font-family: var(--sans);
+  font-weight: 600;
   font-synthesis: none;
   line-height: 1;
-  letter-spacing: 0;
+  letter-spacing: 0.04em;
 }
 
 .logo a {
@@ -307,7 +307,7 @@ a {
 
 .site-header .logo {
   justify-self: center;
-  font-size: clamp(1.45rem, 4.6vw, 3.05rem);
+  font-size: clamp(1.02rem, 4.4vw, 1.7rem);
   text-align: center;
   pointer-events: none;
   line-height: 1;
@@ -382,6 +382,31 @@ a {
 .hero {
   position: relative;
   background: #0b0b0b;
+}
+
+.hero-lockup {
+  position: relative;
+  z-index: 2;
+  padding: 1.15rem 1rem 1.05rem;
+  text-align: center;
+  color: #fff;
+}
+
+.hero-name {
+  margin: 0;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: clamp(1.55rem, 6vw, 2.4rem);
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.hero-sub {
+  margin: 0.55rem 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 .hero-frame {
@@ -1541,6 +1566,7 @@ address {
   }
 
   .site-header .logo {
-    font-size: 1.42rem;
+    font-size: 0.98rem;
+    letter-spacing: 0.02em;
   }
 }

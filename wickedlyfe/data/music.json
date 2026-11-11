@@ -4,7 +4,7 @@
     {
       "id": "sample-single",
       "title": "Sample Single",
-      "artist": "Day X Day",
+      "artist": "",
       "type": "Single",
       "year": "2026",
       "featured": true,
@@ -17,7 +17,7 @@
     {
       "id": "sample-tape",
       "title": "Sample Tape",
-      "artist": "Day X Day",
+      "artist": "",
       "type": "EP",
       "year": "2026",
       "featured": false,

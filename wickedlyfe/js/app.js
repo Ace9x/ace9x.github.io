@@ -1,7 +1,7 @@
 import { buildEmbeds, youtubeId } from "./embeds.js";
 import { httpsUrl, isPlaceholder, paymentOptions } from "./payments.js";
 
-const CART_KEY = "dayxday-cart";
+const CART_KEY = "wickedlyfe-cart";
 
 const state = {
   site: null,
@@ -92,7 +92,7 @@ function normalizeRelease(raw) {
   return {
     id: String(raw.id),
     title: String(raw.title),
-    artist: String(raw.artist || "Day X Day"),
+    artist: String(raw.artist || ""),
     type: String(raw.type || "Release"),
     year: String(raw.year || ""),
     featured: Boolean(raw.featured),
@@ -725,13 +725,10 @@ function renderSocials() {
 }
 
 function applySite() {
-  const email = state.site?.email || "hello@dayxday.example";
+  const email = state.site?.email || "hello@wickedlyfe.example";
   document.querySelectorAll("[data-email]").forEach((node) => {
     node.textContent = email;
     if (node.tagName === "A") node.setAttribute("href", `mailto:${email}`);
-  });
-  document.querySelectorAll("form[data-enhance]").forEach((form) => {
-    form.action = `mailto:${email}`;
   });
   const endpoint = String(state.site?.formspreeEndpoint || "").trim();
   const usingMail = !httpsUrl(endpoint);
@@ -753,14 +750,14 @@ async function submitForm(form) {
   }
   const data = Object.fromEntries(new FormData(form).entries());
   delete data.company;
-  const email = state.site?.email || "hello@dayxday.example";
+  const email = state.site?.email || "hello@wickedlyfe.example";
   const endpoint = httpsUrl(state.site?.formspreeEndpoint || "");
   if (endpoint) {
     try {
       const response = await fetch(endpoint.toString(), {
         method: "POST",
         headers: { Accept: "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, _subject: form.dataset.subject || "Day X Day" }),
+        body: JSON.stringify({ ...data, _subject: form.dataset.subject || "Wicked Lyfe" }),
       });
       if (!response.ok) throw new Error("form");
       form.reset();
@@ -773,7 +770,7 @@ async function submitForm(form) {
   const body = Object.entries(data)
     .map(([key, value]) => `${key}: ${value}`)
     .join("\n");
-  const subject = form.dataset.subject || "Day X Day";
+  const subject = form.dataset.subject || "Wicked Lyfe";
   if (note) note.textContent = `Opening your email app to write ${email}.`;
   window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }

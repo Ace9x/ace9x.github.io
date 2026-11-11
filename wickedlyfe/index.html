@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Wicked Lyfe — Apparel</title>
+    <meta
+      name="description"
+      content="Wicked Lyfe apparel. Shop the sample collection, hear music from the founder, and join the list."
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <meta property="og:title" content="Wicked Lyfe — Apparel" />
+    <meta
+      property="og:description"
+      content="Apparel. Shop the sample collection and hear music from the founder."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="assets/hero-studio.jpg" />
+    <link rel="icon" href="favicon.ico" sizes="32x32" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="assets/fonts/outfit-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/hero-night.jpg" as="image" />
+    <link rel="preload" href="assets/hero-studio.jpg" as="image" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#shop">Skip to the collection</a>
+    <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.6" />
+        <path d="M16 16.5 20 20.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-user" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="3.1" fill="none" stroke="currentColor" stroke-width="1.6" />
+        <path d="M5.2 19.2c1.3-2.8 3.4-4.2 6.8-4.2s5.5 1.4 6.8 4.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-bag" viewBox="0 0 24 24">
+        <path d="M6.6 8.2h10.8l-.7 11.2H7.3L6.6 8.2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+        <path d="M9 8.2V7.1a3 3 0 0 1 6 0v1.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      </symbol>
+    </svg>
+
+    <header class="site-header" id="top">
+      <div class="header-bar">
+        <div class="header-start">
+          <button type="button" class="icon-btn" data-open="menu-dialog" aria-label="Open menu" aria-controls="menu-dialog" aria-expanded="false">
+            <svg class="icon" aria-hidden="true"><use href="#i-menu"></use></svg>
+          </button>
+          <button type="button" class="icon-btn" id="search-open" aria-label="Search the collection" aria-controls="search-panel" aria-expanded="false">
+            <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          </button>
+        </div>
+        <h1 class="logo"><a href="#top">Wicked Lyfe</a></h1>
+        <div class="header-end">
+          <button type="button" class="icon-btn" data-open="account-dialog" aria-label="Account" aria-controls="account-dialog" aria-expanded="false">
+            <svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg>
+          </button>
+          <button type="button" class="icon-btn" id="cart-open" data-open="cart-dialog" aria-label="Open cart, empty" aria-controls="cart-dialog" aria-expanded="false">
+            <svg class="icon" aria-hidden="true"><use href="#i-bag"></use></svg>
+            <span class="cart-count" id="cart-count" data-empty="true">0</span>
+          </button>
+        </div>
+      </div>
+      <div id="search-panel" class="search-panel" hidden>
+        <label class="sr-only" for="search-input">Search sample pieces</label>
+        <input id="search-input" type="search" placeholder="Search sample pieces" autocomplete="off" />
+        <button type="button" class="text-btn" id="search-clear">Clear</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" aria-label="Campaign">
+        <div class="hero-lockup">
+          <p class="hero-name">Wicked Lyfe</p>
+          <p class="hero-sub">Apparel · Founded by DAYxDAY</p>
+        </div>
+        <div class="hero-frame">
+          <figure class="hero-shot">
+            <img
+              class="hero-night"
+              src="assets/hero-night.jpg"
+              alt="Sample campaign photo. A figure in a black hoodie on a wet street at night."
+              width="864"
+              height="1152"
+              fetchpriority="high"
+            />
+          </figure>
+          <figure class="hero-shot">
+            <img
+              class="hero-studio"
+              src="assets/hero-studio.jpg"
+              alt="Sample campaign photo. A figure in a cream thermal against a red studio wall."
+              width="864"
+              height="1152"
+            />
+          </figure>
+        </div>
+        <a class="hero-cta" href="#shop">Shop the collection</a>
+      </section>
+
+      <section class="shop" id="shop" aria-labelledby="shop-title">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Collection</p>
+              <h2 class="display" id="shop-title">Shop</h2>
+              <p class="result-count" id="result-count">Loading sample pieces</p>
+            </div>
+            <p class="section-note">Sample pieces. Every price is marked SAMPLE until a real payment link is pasted in.</p>
+          </div>
+          <p id="filter-status" class="sr-only" aria-live="polite"></p>
+          <p id="loading-note" class="sr-only">Loading the sample collection.</p>
+          <div id="load-error" class="banner" role="alert" hidden>
+            <p>The catalog didn’t load. Refresh the page. If you opened this file from your desktop, use a local server instead — the shop reads JSON.</p>
+          </div>
+          <div id="product-grid" class="grid" aria-busy="true">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+          </div>
+          <noscript>
+            <p class="section-note">JavaScript is required to load the sample catalog from data/products.json.</p>
+          </noscript>
+        </div>
+      </section>
+
+      <section class="music" id="music" aria-labelledby="music-title">
+        <div class="wrap">
+          <p class="eyebrow">Music from the founder</p>
+          <h2 class="display" id="music-title">Music</h2>
+          <div id="featured" class="featured" aria-live="polite"></div>
+          <div id="release-list" class="release-list" aria-label="Releases"></div>
+          <div class="video-block">
+            <h3>Video</h3>
+            <div id="video-grid" class="video-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="about" id="about" aria-labelledby="about-title">
+        <div class="wrap about-grid">
+          <img
+            src="assets/about-still.jpg"
+            width="1152"
+            height="864"
+            alt="Sample still life: a folded black hoodie, a cream thermal, and headphones on a wooden bench."
+          />
+          <div class="about-copy">
+            <p class="eyebrow">About</p>
+            <h2 class="display" id="about-title">Apparel from the founder’s music.</h2>
+            <p>
+              Wicked Lyfe is an apparel line. The shop is a sample collection with placeholder prices. The music on this page is from the founder.
+            </p>
+            <p>
+              Sample bio. Replace this text in index.html with the real story. The shop, the prices, and the players on this page are placeholders until the catalog and the release links are swapped in.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="contact" id="contact" aria-labelledby="contact-title">
+        <div class="wrap contact-grid">
+          <div>
+            <p class="eyebrow">The list</p>
+            <h2 id="contact-title">New music, first.</h2>
+            <p class="help">Releases and drops. No account required.</p>
+            <form class="inline-form" data-enhance data-subject="List signup" action="#contact" method="post" enctype="text/plain">
+              <div class="grow">
+                <label class="label" for="list-email">Email</label>
+                <input id="list-email" name="email" type="email" autocomplete="email" required />
+              </div>
+              <input class="hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
+              <button class="btn" type="submit">Join the list</button>
+              <p class="form-note" data-form-note></p>
+            </form>
+          </div>
+          <div>
+            <p class="eyebrow">Contact</p>
+            <h2>Write in.</h2>
+            <p class="help">Questions about a piece, a show, or the catalog.</p>
+            <address class="help">Email <a data-email href="mailto:hello@wickedlyfe.example">hello@wickedlyfe.example</a></address>
+            <form data-enhance data-subject="Wicked Lyfe note" action="#contact" method="post" enctype="text/plain">
+              <div class="field">
+                <label class="label" for="contact-name">Name</label>
+                <input id="contact-name" name="name" type="text" autocomplete="name" required />
+              </div>
+              <div class="field">
+                <label class="label" for="contact-email">Email</label>
+                <input id="contact-email" name="email" type="email" autocomplete="email" required />
+              </div>
+              <div class="field">
+                <label class="label" for="contact-message">Message</label>
+                <textarea id="contact-message" name="message" required></textarea>
+              </div>
+              <input class="hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
+              <button class="btn" type="submit">Send</button>
+              <p class="form-note" data-form-note></p>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <p class="logo">Wicked Lyfe</p>
+        <nav class="footer-nav" aria-label="Footer">
+          <a href="#shop">Shop</a>
+          <a href="#music">Music</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+        </nav>
+        <ul class="social-list" id="social-list">
+          <li><a href="https://www.instagram.com/wickedlyfe_inc" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        </ul>
+        <p class="fine">Sample catalog for Wicked Lyfe. Prices marked SAMPLE are not for sale until a payment link is added. Instagram @wickedlyfe_inc.</p>
+        <div class="legal">
+          <span>© <span id="year">2026</span> Wicked Lyfe</span>
+          <span class="credit">Site by Ace Apps</span>
+        </div>
+      </div>
+    </footer>
+
+    <dialog id="menu-dialog" aria-label="Menu">
+      <div class="menu-top">
+        <p class="logo">Wicked Lyfe</p>
+        <button type="button" class="icon-btn" data-close="menu-dialog" data-autofocus aria-label="Close menu">
+          <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+        </button>
+      </div>
+      <nav class="menu-nav" aria-label="Primary">
+        <a class="menu-link" href="#shop" data-goto="#shop">Shop</a>
+        <a class="menu-link" href="#music" data-goto="#music">Music</a>
+        <a class="menu-link" href="#about" data-goto="#about">About</a>
+        <a class="menu-link" href="#contact" data-goto="#contact">Contact</a>
+      </nav>
+      <p class="menu-foot"><a href="https://www.instagram.com/wickedlyfe_inc" target="_blank" rel="noopener noreferrer">@wickedlyfe_inc</a></p>
+    </dialog>
+
+    <dialog id="account-dialog" class="sheet-dialog" aria-labelledby="account-title">
+      <div class="sheet sheet-small">
+        <button type="button" class="icon-btn close-btn" data-close="account-dialog" data-autofocus aria-label="Close account">
+          <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+        </button>
+        <div class="sheet-body">
+          <p class="eyebrow">Account</p>
+          <h2 id="account-title">No accounts yet</h2>
+          <p class="help">Orders will live on the Stripe or PayPal page connected to each piece. Join the list for new music and drops.</p>
+          <form data-enhance data-subject="List signup" action="#contact" method="post" enctype="text/plain">
+            <div class="field">
+              <label class="label" for="account-email">Email</label>
+              <input id="account-email" name="email" type="email" autocomplete="email" required />
+            </div>
+            <input class="hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <button class="btn btn-block" type="submit">Join the list</button>
+            <p class="form-note" data-form-note></p>
+          </form>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="quick-view" class="sheet-dialog" aria-labelledby="qv-name">
+      <div class="sheet">
+        <button type="button" class="icon-btn close-btn" data-close="quick-view" data-autofocus aria-label="Close quick view">
+          <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+        </button>
+        <div id="qv-body"></div>
+      </div>
+    </dialog>
+
+    <dialog id="cart-dialog" aria-labelledby="cart-title">
+      <div class="drawer" role="document">
+        <div class="drawer-head">
+          <h2 id="cart-title">Cart</h2>
+          <button type="button" class="icon-btn" data-close="cart-dialog" data-autofocus aria-label="Close cart">
+            <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+          </button>
+        </div>
+        <div class="drawer-scroll">
+          <div id="cart-items"></div>
+          <div id="cart-foot">
+            <div class="subtotal">
+              <span><span class="sample">SAMPLE</span> subtotal</span>
+              <span id="cart-subtotal">$0</span>
+            </div>
+            <h3 class="label checkout-label">Checkout</h3>
+            <p class="pay-help">Each piece checks out on its own link. Sample prices are not a charge. The link charges whatever you set on Stripe or PayPal.</p>
+            <div id="cart-pay"></div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
