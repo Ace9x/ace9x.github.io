@@ -278,9 +278,14 @@ a {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: #fff;
+  background: #000;
+  color: #fff;
   border-top: 3px solid var(--red);
   border-bottom: 1px solid transparent;
+}
+
+.site-header .icon-btn {
+  color: #fff;
 }
 
 .site-header.is-scrolled {
@@ -307,12 +312,16 @@ a {
 
 .site-header .logo {
   justify-self: center;
-  font-size: clamp(1.02rem, 4.4vw, 1.7rem);
   text-align: center;
   pointer-events: none;
-  line-height: 1;
-  white-space: nowrap;
-  padding-block: 0.2rem;
+  line-height: 0;
+  padding-block: 0.15rem;
+}
+
+.brand-logo {
+  display: block;
+  height: 3.35rem;
+  width: auto;
 }
 
 .site-header .logo a {
@@ -387,26 +396,40 @@ a {
 .hero-lockup {
   position: relative;
   z-index: 2;
-  padding: 1.15rem 1rem 1.05rem;
+  padding: 1.35rem 1rem 1.4rem;
   text-align: center;
   color: #fff;
+  background: #000;
 }
 
-.hero-name {
-  margin: 0;
-  font-family: var(--sans);
-  font-weight: 600;
-  font-size: clamp(1.55rem, 6vw, 2.4rem);
-  letter-spacing: 0.08em;
-  line-height: 1;
+.hero-logo {
+  display: block;
+  width: min(78vw, 26rem);
+  height: auto;
+  margin: 0 auto;
 }
 
 .hero-sub {
-  margin: 0.55rem 0 0;
-  color: rgba(255, 255, 255, 0.78);
+  margin: 0.85rem 0 0;
+  color: rgba(255, 255, 255, 0.82);
   font-size: 0.82rem;
   font-weight: 500;
   letter-spacing: 0.02em;
+}
+
+.hero-bio {
+  max-width: 34rem;
+  margin: 0.75rem auto 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.tagline {
+  display: block;
+  width: min(68vw, 15rem);
+  height: auto;
+  margin: 1.1rem auto 0;
 }
 
 .hero-frame {
@@ -1482,9 +1505,70 @@ address {
   gap: 1.4rem;
 }
 
-.site-footer .logo {
-  font-size: clamp(2.2rem, 6vw, 3.2rem);
-  color: #f4f1ec;
+.footer-mark,
+.about-mark {
+  display: block;
+  width: min(78vw, 16rem);
+  height: auto;
+}
+
+.about-mark {
+  width: min(70vw, 14rem);
+  margin: 0 0 1rem;
+}
+
+.mark-divider {
+  display: grid;
+  place-items: center;
+  background: #000;
+  padding: 1.5rem 1rem 1.7rem;
+}
+
+.mark-divider img {
+  width: min(42vw, 9.5rem);
+  height: auto;
+}
+
+.music-action {
+  margin: 0.2rem 0 1.4rem;
+}
+
+.marquee {
+  overflow: hidden;
+  background: #000;
+  padding: 0.85rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.marquee-track {
+  display: flex;
+  align-items: center;
+  gap: 3.2rem;
+  width: max-content;
+  animation: property-marquee 28s linear infinite;
+}
+
+.marquee img {
+  height: 3rem;
+  width: auto;
+}
+
+@keyframes property-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.flag.sold {
+  background: var(--ink);
+  color: #fff;
+}
+
+.sold-label {
+  color: var(--red);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .footer-nav,
@@ -1565,8 +1649,7 @@ address {
     width: 2.45rem;
   }
 
-  .site-header .logo {
-    font-size: 0.98rem;
-    letter-spacing: 0.02em;
+  .brand-logo {
+    height: 2.85rem;
   }
 }

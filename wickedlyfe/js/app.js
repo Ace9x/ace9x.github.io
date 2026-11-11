@@ -56,10 +56,19 @@ function formatSize(size) {
   return size === "OS" ? "One size" : size;
 }
 
-function priceLine(amount) {
+function priceLine(product, qty = 1) {
+  if (product.soldOut) {
+    return el("span", { class: "price" }, [el("span", { class: "sold-label", text: "Sold out" })]);
+  }
+  if (product.priceLabel) {
+    return el("span", { class: "price" }, [
+      el("span", { class: "sample", text: "SAMPLE" }),
+      ` ${product.priceLabel}`,
+    ]);
+  }
   return el("span", { class: "price" }, [
     el("span", { class: "sample", text: "SAMPLE" }),
-    ` ${money(amount)}`,
+    ` ${money(product.price * qty)}`,
   ]);
 }
 
@@ -71,13 +80,19 @@ function normalizeProduct(raw) {
   if (!raw || typeof raw !== "object") return null;
   const id = String(raw.id || "").trim();
   const name = String(raw.name || "").trim();
-  const price = Number(raw.price);
-  if (!id || !name || !Number.isFinite(price)) return null;
+  const priceLabel = String(raw.priceLabel || "").trim();
+  const soldOut = Boolean(raw.soldOut);
+  const priceNum = raw.price === null || raw.price === "" ? NaN : Number(raw.price);
+  const price = Number.isFinite(priceNum) ? priceNum : null;
+  if (!id || !name) return null;
+  if (!soldOut && !priceLabel && price === null) return null;
   const sizes = Array.isArray(raw.sizes) && raw.sizes.length ? raw.sizes.map((size) => String(size)) : ["OS"];
   return {
     id,
     name,
     price,
+    priceLabel,
+    soldOut,
     image: String(raw.image || ""),
     alt: String(raw.alt || name),
     description: String(raw.description || ""),
@@ -276,16 +291,18 @@ function productCard(product, index) {
         type: "button",
         class: "card-open",
         "data-quick": product.id,
-        "aria-label": `Quick view ${product.name}, sample price ${money(product.price)}`,
+        "aria-label": product.soldOut
+          ? `${product.name}, sold out`
+          : `Quick view ${product.name}, sample price ${product.priceLabel || money(product.price)}`,
       },
       [
         el("span", { class: "card-media" }, [
           image,
-          el("span", { class: "flag", text: "Sample" }),
-          el("span", { class: "quick-label", text: "Quick view" }),
+          el("span", { class: product.soldOut ? "flag sold" : "flag", text: product.soldOut ? "Sold out" : "Sample" }),
+          el("span", { class: "quick-label", text: product.soldOut ? "Sold out" : "Quick view" }),
         ]),
         el("span", { class: "card-name", text: product.name }),
-        priceLine(product.price),
+        priceLine(product),
       ],
     ),
   ]);
@@ -293,6 +310,10 @@ function productCard(product, index) {
 
 function fillPay(container, product, size) {
   container.replaceChildren();
+  if (product.soldOut) {
+    container.append(el("p", { class: "pay-note", text: "Sold out." }));
+    return;
+  }
   const options = paymentOptions(product, size);
   if (!options.length) {
     container.append(
@@ -342,9 +363,9 @@ function renderQuick() {
     el("div", { class: "qv" }, [
       el("div", { class: "qv-photo" }, [photo]),
       el("div", { class: "qv-info" }, [
-        el("p", { class: "eyebrow", text: "Sample" }),
+        el("p", { class: "eyebrow", text: product.soldOut ? "Sold out" : "Sample" }),
         el("h2", { id: "qv-name", text: product.name }),
-        priceLine(product.price),
+        priceLine(product),
         el("p", { class: "help", text: product.description }),
         el("div", { class: "field" }, [
           el("div", { class: "label-row" }, [
@@ -375,7 +396,13 @@ function renderQuick() {
             }),
           ]),
         ]),
-        el("button", { type: "button", class: "btn btn-block", "data-add": "true", text: "Add to cart" }),
+        el("button", {
+          type: "button",
+          class: "btn btn-block",
+          "data-add": "true",
+          text: product.soldOut ? "Sold out" : "Add to cart",
+          disabled: product.soldOut ? true : undefined,
+        }),
         pay,
       ]),
     ]),
@@ -411,7 +438,7 @@ function selectSize(size) {
 
 function addQuick() {
   const product = productById(quick.id);
-  if (!product) return;
+  if (!product || product.soldOut) return;
   if (!quick.size) {
     const error = $("#qv-error");
     if (error) error.textContent = "Select a size.";
@@ -474,7 +501,8 @@ function renderCart(focusKind, focusId, focusSize) {
   items.replaceChildren(...state.cart.map(cartRow).filter(Boolean));
   const subtotal = state.cart.reduce((total, line) => {
     const product = productById(line.id);
-    return total + (product ? product.price * line.qty : 0);
+    if (!product || product.soldOut || product.priceLabel || !Number.isFinite(product.price)) return total;
+    return total + product.price * line.qty;
   }, 0);
   const subtotalNode = $("#cart-subtotal");
   if (subtotalNode) subtotalNode.textContent = money(subtotal);
@@ -534,7 +562,7 @@ function cartRow(line) {
     el("div", {}, [
       el("h3", { class: "cart-name", text: product.name }),
       el("p", { class: "cart-meta", text: formatSize(line.size) }),
-      priceLine(product.price * line.qty),
+      priceLine(product, line.qty),
       el("div", { class: "cart-actions" }, [
         el("div", { class: "qty" }, [
           el("button", {

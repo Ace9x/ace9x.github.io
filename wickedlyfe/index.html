@@ -9,19 +9,18 @@
       name="description"
       content="Wicked Lyfe apparel. Shop the sample collection, hear music from the founder, and join the list."
     />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#000000" />
     <meta property="og:title" content="Wicked Lyfe — Apparel" />
     <meta
       property="og:description"
-      content="Apparel. Shop the sample collection and hear music from the founder."
+      content="Taking on everything — Music, Acting, Art, Media. We just getting started."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="assets/hero-studio.jpg" />
-    <link rel="icon" href="favicon.ico" sizes="32x32" />
-    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <meta property="og:image" content="assets/brand/logo-header.png" />
+    <link rel="icon" href="favicon.ico" sizes="48x48" />
+    <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png" />
+    <link rel="preload" href="assets/brand/logo-hero.webp" as="image" type="image/webp" />
     <link rel="preload" href="assets/fonts/outfit-400.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="assets/hero-night.jpg" as="image" />
-    <link rel="preload" href="assets/hero-studio.jpg" as="image" />
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
@@ -57,7 +56,14 @@
             <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
           </button>
         </div>
-        <h1 class="logo"><a href="#top">Wicked Lyfe</a></h1>
+        <h1 class="logo">
+          <a href="#top">
+            <picture>
+              <source srcset="assets/brand/logo-header.webp" type="image/webp" />
+              <img class="brand-logo" src="assets/brand/logo-header.png" alt="Wicked Lyfe Inc." width="400" height="394" />
+            </picture>
+          </a>
+        </h1>
         <div class="header-end">
           <button type="button" class="icon-btn" data-open="account-dialog" aria-label="Account" aria-controls="account-dialog" aria-expanded="false">
             <svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg>
@@ -78,8 +84,16 @@
     <main>
       <section class="hero" aria-label="Campaign">
         <div class="hero-lockup">
-          <p class="hero-name">Wicked Lyfe</p>
+          <picture>
+            <source srcset="assets/brand/logo-hero.webp" type="image/webp" />
+            <img class="hero-logo" src="assets/brand/logo-hero.png" alt="Wicked Lyfe Inc." width="1200" height="1182" />
+          </picture>
           <p class="hero-sub">Apparel · Founded by DAYxDAY</p>
+          <p class="hero-bio">Taking on everything — Music, Acting, Art, Media. We just getting started. Join the community.</p>
+          <picture>
+            <source srcset="assets/brand/make-art-white.webp" type="image/webp" />
+            <img class="tagline" src="assets/brand/make-art-white.png" alt="make art / make out / make money" width="900" height="657" />
+          </picture>
         </div>
         <div class="hero-frame">
           <figure class="hero-shot">
@@ -134,10 +148,20 @@
         </div>
       </section>
 
+      <div class="mark-divider">
+        <picture>
+          <source srcset="assets/brand/xx-smiley-white.webp" type="image/webp" />
+          <img src="assets/brand/xx-smiley-white.png" alt="Wicked Lyfe Inc." width="666" height="810" />
+        </picture>
+      </div>
+
       <section class="music" id="music" aria-labelledby="music-title">
         <div class="wrap">
           <p class="eyebrow">Music from the founder</p>
           <h2 class="display" id="music-title">Music</h2>
+          <p class="music-action">
+            <a class="btn" href="https://unitedmasters.com/a/dayxday" target="_blank" rel="noopener noreferrer">Listen</a>
+          </p>
           <div id="featured" class="featured" aria-live="polite"></div>
           <div id="release-list" class="release-list" aria-label="Releases"></div>
           <div class="video-block">
@@ -157,12 +181,14 @@
           />
           <div class="about-copy">
             <p class="eyebrow">About</p>
-            <h2 class="display" id="about-title">Apparel from the founder’s music.</h2>
+            <picture>
+              <source srcset="assets/brand/wli-brush.webp" type="image/webp" />
+              <img class="about-mark" src="assets/brand/wli-brush.png" alt="W.L.I. EST. 2002" width="891" height="526" />
+            </picture>
+            <h2 class="display" id="about-title">Taking on everything.</h2>
+            <p>Taking on everything — Music, Acting, Art, Media. We just getting started. Join the community.</p>
             <p>
-              Wicked Lyfe is an apparel line. The shop is a sample collection with placeholder prices. The music on this page is from the founder.
-            </p>
-            <p>
-              Sample bio. Replace this text in index.html with the real story. The shop, the prices, and the players on this page are placeholders until the catalog and the release links are swapped in.
+              Wicked Lyfe is apparel. The shop photos and the prices marked SAMPLE are placeholders. The overhood sweater is sold out. Graphic pieces are TBD until a payment link is added.
             </p>
           </div>
         </div>
@@ -211,9 +237,38 @@
       </section>
     </main>
 
+    <div class="marquee">
+      <p class="sr-only">Property of Wicked Lyfe Inc.</p>
+      <div class="marquee-track" aria-hidden="true">
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+        <img src="assets/brand/property-of-white.webp" alt="" width="900" height="348" />
+      </div>
+    </div>
+
     <footer class="site-footer">
       <div class="wrap footer-grid">
-        <p class="logo">Wicked Lyfe</p>
+        <picture>
+          <source srcset="assets/brand/wli-oldenglish-white.webp" type="image/webp" />
+          <img class="footer-mark" src="assets/brand/wli-oldenglish-white.png" alt="W.L.I. EST. 2002" width="900" height="399" />
+        </picture>
         <nav class="footer-nav" aria-label="Footer">
           <a href="#shop">Shop</a>
           <a href="#music">Music</a>
@@ -233,7 +288,9 @@
 
     <dialog id="menu-dialog" aria-label="Menu">
       <div class="menu-top">
-        <p class="logo">Wicked Lyfe</p>
+        <p class="logo">
+          <img class="brand-logo" src="assets/brand/logo-header.webp" alt="Wicked Lyfe Inc." width="400" height="394" />
+        </p>
         <button type="button" class="icon-btn" data-close="menu-dialog" data-autofocus aria-label="Close menu">
           <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
         </button>
