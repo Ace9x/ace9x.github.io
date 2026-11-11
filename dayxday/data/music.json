@@ -1,0 +1,45 @@
+{
+  "_note": "Sample players. Paste real links into spotify, apple, and youtube. Spotify accepts an open.spotify.com track, album, or playlist URL, or the embed src. Apple Music accepts a music.apple.com link or an embed.music.apple.com src. YouTube accepts a watch URL, a youtu.be link, an embed src, or an 11-character video id. Empty strings stay as labeled sample shells so the page does not load a broken player.",
+  "releases": [
+    {
+      "id": "sample-single",
+      "title": "Sample Single",
+      "artist": "Day X Day",
+      "type": "Single",
+      "year": "2026",
+      "featured": true,
+      "cover": "assets/cover-sample.jpg",
+      "blurb": "Placeholder single. Replace the title, the artwork, and the player links with the real release.",
+      "spotify": "",
+      "apple": "",
+      "youtube": ""
+    },
+    {
+      "id": "sample-tape",
+      "title": "Sample Tape",
+      "artist": "Day X Day",
+      "type": "EP",
+      "year": "2026",
+      "featured": false,
+      "cover": "assets/cover-tape.jpg",
+      "blurb": "Placeholder EP, so the release list has a second row. Swap it or delete it.",
+      "spotify": "",
+      "apple": "",
+      "youtube": ""
+    }
+  ],
+  "videos": [
+    {
+      "id": "sample-video",
+      "title": "Sample Video",
+      "youtube": "",
+      "poster": "assets/hero-night.jpg"
+    },
+    {
+      "id": "sample-live",
+      "title": "Sample Live Clip",
+      "youtube": "",
+      "poster": "assets/hero-studio.jpg"
+    }
+  ]
+}

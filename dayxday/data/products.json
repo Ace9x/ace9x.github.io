@@ -1,0 +1,84 @@
+{
+  "_note": "Sample catalog. Display prices are not charged. Paste a Stripe Payment Link into payments.stripe (https://buy.stripe.com/...) or a PayPal URL into payments.paypal (https://paypal.me/name/85 or a hosted-button URL). Leave a string empty until you have the real link. Optional paymentsBySize can override one size, for example \"M\": { \"stripe\": \"https://buy.stripe.com/...\" }.",
+  "currency": "USD",
+  "products": [
+    {
+      "id": "sample-hoodie",
+      "name": "Sample Hoodie",
+      "price": 85,
+      "image": "assets/products/hoodie.jpg",
+      "alt": "Black sample hoodie with a small red cross-stitch on the chest",
+      "description": "Sample heavyweight fleece. Swap the photo, the price, and the payment link before this is a real piece.",
+      "sizes": ["S", "M", "L", "XL"],
+      "payments": {
+        "stripe": "",
+        "paypal": ""
+      }
+    },
+    {
+      "id": "sample-tee",
+      "name": "Sample Tee",
+      "price": 40,
+      "image": "assets/products/tee.jpg",
+      "alt": "Bone colored sample t-shirt on a plain background",
+      "description": "Sample boxy tee. The price is marked SAMPLE and is not an offer to sell.",
+      "sizes": ["S", "M", "L", "XL"],
+      "payments": {
+        "stripe": "",
+        "paypal": ""
+      }
+    },
+    {
+      "id": "sample-cap",
+      "name": "Sample Cap",
+      "price": 32,
+      "image": "assets/products/cap.jpg",
+      "alt": "Black sample cap with a tiny red stitch",
+      "description": "Sample unstructured cap. One size until you replace it with the real hat.",
+      "sizes": ["OS"],
+      "payments": {
+        "stripe": "",
+        "paypal": ""
+      }
+    },
+    {
+      "id": "sample-thermal",
+      "name": "Sample Thermal",
+      "price": 68,
+      "image": "assets/products/thermal.jpg",
+      "alt": "Cream sample waffle henley laid flat",
+      "description": "Sample waffle henley. Replace the picture and this sentence with the real thermal.",
+      "sizes": ["S", "M", "L", "XL"],
+      "payments": {
+        "stripe": "",
+        "paypal": ""
+      }
+    },
+    {
+      "id": "sample-tote",
+      "name": "Sample Tote",
+      "price": 28,
+      "image": "assets/products/tote.jpg",
+      "alt": "Black sample tote bag with a small red cross-stitch",
+      "description": "Sample canvas tote. One size. Paste a payment link when you are ready to sell it.",
+      "sizes": ["OS"],
+      "payments": {
+        "stripe": "",
+        "paypal": ""
+      }
+    },
+    {
+      "id": "sample-crewneck",
+      "name": "Sample Crewneck",
+      "price": 75,
+      "image": "assets/products/crewneck.jpg",
+      "alt": "Black sample crewneck sweatshirt on a plain background",
+      "description": "Sample crewneck sweatshirt. The price is a placeholder, not a charge.",
+      "sizes": ["S", "M", "L", "XL"],
+      "payments": {
+        "stripe": "",
+        "paypal": ""
+      }
+    }
+  ]
+}
