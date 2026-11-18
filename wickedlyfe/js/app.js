@@ -4,6 +4,19 @@ import { SUPABASE_KEY, SUPABASE_URL } from "./config.js";
 import { describeLink, httpsUrl, paymentOptions } from "./payments.js";
 
 const CART_KEY = "wickedlyfe-cart";
+const TALK_KEY = "wl-talk-at";
+const SETTINGS_COLUMNS =
+  "id,brand_name,tagline,bio,logo_url,music_url,instagram_url,accent_color,announcement,stripe_link,paypal_link";
+const MUSIC_COLUMNS =
+  "id,kind,title,artist,release_type,release_date,artwork_url,blurb,spotify_url,apple_url,youtube_url,page_url,featured,badge,sort_order";
+const IMAGE_TYPES = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+};
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const state = {
   site: null,
@@ -123,6 +136,8 @@ function normalizeRelease(raw) {
     spotify: String(raw.spotify || ""),
     apple: String(raw.apple || ""),
     youtube: String(raw.youtube || ""),
+    page: String(raw.page || ""),
+    badge: String(raw.badge || ""),
   };
 }
 
@@ -650,15 +665,6 @@ const SERVICE_NAMES = { spotify: "Spotify", apple: "Apple Music", youtube: "YouT
 
 function embedNode(service, embed, title) {
   const name = SERVICE_NAMES[service];
-  if (!embed) {
-    return el("div", { class: "embed-shell", "data-service": service }, [
-      el("div", { class: "embed-kicker" }, [
-        el("span", { text: name }),
-        el("span", { class: "sample", text: "Sample" }),
-      ]),
-      el("p", { text: `Paste a ${name} link for this release in data/music.json.` }),
-    ]);
-  }
   const frame = el("iframe", {
     class: `embed-frame ${service}`,
     src: embed.src,
@@ -691,29 +697,44 @@ function renderFeatured() {
     root.replaceChildren(el("p", { text: "Add a release in data/music.json." }));
     return;
   }
-  const cover = el("img", {
-    class: "cover",
-    src: release.cover,
-    alt: `Sample cover art for ${release.title}`,
-    width: "1024",
-    height: "1024",
-  });
-  watchImage(cover);
+  const cover = release.cover
+    ? el("img", {
+        class: "cover",
+        src: release.cover,
+        alt: `Cover art for ${release.title} by ${release.artist || "DAYxDAY"}`,
+        width: "800",
+        height: "800",
+      })
+    : el("div", { class: "cover" });
+  if (release.cover) watchImage(cover);
   const embeds = buildEmbeds(release);
   const players = el("div", { class: "players" });
   ["spotify", "apple", "youtube"].forEach((service) => {
-    players.append(embedNode(service, embeds[service], release.title));
+    if (embeds[service]) players.append(embedNode(service, embeds[service], release.title));
   });
+  const links = el("div", { class: "out-links" });
+  if (embeds.spotify) links.append(externalLink("Spotify", embeds.spotify.openUrl));
+  if (embeds.apple) links.append(externalLink("Apple Music", embeds.apple.openUrl));
+  if (httpsUrl(release.page)) links.append(externalLink("UnitedMasters", release.page));
   root.replaceChildren(
     cover,
     el("div", { class: "featured-copy" }, [
-      el("p", { class: "eyebrow", text: release.featured ? "New release · Sample" : "Sample release" }),
+      release.badge
+        ? el("p", { class: "ep-badge", text: release.badge })
+        : el("p", { class: "eyebrow", text: release.featured ? "Latest release" : "Release" }),
       el("h3", { class: "release-title", id: "featured-title", text: release.title }),
-      el("p", { class: "dek", text: release.blurb }),
-      el("p", { class: "byline", text: [release.artist, release.type, release.year].filter(Boolean).join(" · ") }),
+      release.blurb ? el("p", { class: "dek", text: release.blurb }) : null,
+      el("p", { class: "byline", text: [release.artist || "DAYxDAY", release.type, release.year].filter(Boolean).join(" · ") }),
       players,
+      links,
     ]),
   );
+}
+
+function externalLink(label, href) {
+  const url = httpsUrl(href);
+  if (!url) return null;
+  return el("a", { href: url.toString(), target: "_blank", rel: "noopener noreferrer", text: label });
 }
 
 function renderReleaseList() {
@@ -721,7 +742,13 @@ function renderReleaseList() {
   if (!list) return;
   list.replaceChildren(
     ...state.releases.map((release) => {
-      const cover = el("img", { src: release.cover, alt: "", width: "64", height: "64" });
+      const cover = el("img", {
+        src: release.cover,
+        alt: "",
+        width: "64",
+        height: "64",
+        loading: "lazy",
+      });
       watchImage(cover);
       return el(
         "button",
@@ -737,7 +764,10 @@ function renderReleaseList() {
             el("span", { class: "release-name", text: release.title }),
             el("span", { class: "release-meta", text: [release.type, release.year].filter(Boolean).join(" · ") }),
           ]),
-          el("span", { class: "new-tag", text: release.featured ? "New" : "Sample" }),
+          el("span", {
+            class: release.badge || release.featured ? "new-tag" : "release-meta",
+            text: release.badge || release.featured ? "New" : release.year || "",
+          }),
         ],
       );
     }),
@@ -746,42 +776,28 @@ function renderReleaseList() {
 
 function renderVideos() {
   const grid = $("#video-grid");
+  const block = $(".video-block");
   if (!grid) return;
-  if (!state.videos.length) {
-    grid.replaceChildren(el("p", { class: "dek", text: "Add videos in data/music.json." }));
-    return;
-  }
-  grid.replaceChildren(
-    ...state.videos.map((video) => {
+  const frames = state.videos
+    .map((video) => {
       const id = youtubeId(video.youtube);
-      const image = el("img", { src: video.poster, alt: "", width: "864", height: "1152" });
-      watchImage(image);
-      const button = el(
-        "button",
-        {
-          type: "button",
-          class: "video-card",
-          "data-video": video.id,
-          "aria-label": id ? `Play ${video.title}` : `${video.title}. Add a YouTube link in data/music.json`,
-        },
-        [
-          image,
-          el("span", { class: "sample-flag", text: id ? "Play" : "Sample" }),
-          el("span", { class: "play-disc", "aria-hidden": "true" }),
-          el("span", { class: "video-meta" }, [
-            el("span", { class: "video-title", text: video.title }),
-            el("span", {
-              class: "video-sub",
-              text: id ? "YouTube" : "Add a YouTube link in data/music.json",
-            }),
-          ]),
-        ],
-      );
-      if (id) button.dataset.src = `https://www.youtube-nocookie.com/embed/${id}?rel=0&autoplay=1`;
-      else button.dataset.sample = "true";
-      return button;
-    }),
-  );
+      if (!id) return null;
+      return el("figure", { class: "video-embed" }, [
+        el("iframe", {
+          class: "video-frame",
+          src: `https://www.youtube-nocookie.com/embed/${id}?rel=0`,
+          title: video.title,
+          loading: "lazy",
+          referrerpolicy: "strict-origin-when-cross-origin",
+          allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen",
+          allowfullscreen: true,
+        }),
+        el("figcaption", { class: "video-caption", text: video.title }),
+      ]);
+    })
+    .filter(Boolean);
+  if (block) block.hidden = frames.length === 0;
+  grid.replaceChildren(...frames);
 }
 
 function renderSocials() {
@@ -806,54 +822,148 @@ function renderSocials() {
 }
 
 function applySite() {
-  const email = state.site?.email || "hello@wickedlyfe.example";
-  document.querySelectorAll("[data-email]").forEach((node) => {
-    node.textContent = email;
-    if (node.tagName === "A") node.setAttribute("href", `mailto:${email}`);
-  });
-  const endpoint = String(state.site?.formspreeEndpoint || "").trim();
-  const usingMail = !httpsUrl(endpoint);
-  document.querySelectorAll("[data-form-note]").forEach((note) => {
-    note.textContent = usingMail
-      ? "Sample form. This opens your email app until you paste a Formspree endpoint in data/site.json."
-      : "This form sends through the endpoint in data/site.json.";
-  });
   renderSocials();
 }
 
-async function submitForm(form) {
-  const note = form.querySelector(".form-note");
-  const honeypot = form.querySelector(".hp");
-  if (honeypot && honeypot.value) {
-    if (note) note.textContent = "Sent.";
+function formNote(form, text) {
+  const note = form.querySelector("[data-form-note]");
+  if (note) note.textContent = text;
+}
+
+function trapped(form) {
+  const honeypot = form.querySelector('[name="wl_hp"]');
+  if (honeypot && honeypot.value) return true;
+  const opened = Number(form.dataset.opened || 0);
+  return Boolean(opened && Date.now() - opened < 1200);
+}
+
+function sentTooSoon() {
+  try {
+    return Date.now() - Number(localStorage.getItem(TALK_KEY) || 0) < 20000;
+  } catch {
+    return false;
+  }
+}
+
+function markSent() {
+  try {
+    localStorage.setItem(TALK_KEY, String(Date.now()));
+  } catch {
+    /* The server limit still applies. */
+  }
+}
+
+function talkError(error) {
+  const text = `${error?.message || ""} ${error?.details || ""}`;
+  if (/rate_limited/i.test(text)) return "Please wait a bit and try again.";
+  if (text.includes("image")) return "Use a JPG, PNG, WEBP, or GIF.";
+  if (text.includes("size")) return "That photo is over 5 MB.";
+  if (/failed to fetch|network|timeout/i.test(text)) return "Can't send right now. Check your connection and try again.";
+  return "That didn't send. Try again in a moment.";
+}
+
+async function prepareImage(file) {
+  if (!file) return null;
+  if (!file.type.startsWith("image/")) throw new Error("image");
+  const direct = IMAGE_TYPES[file.type];
+  if (direct && file.size <= 5 * 1024 * 1024) return { blob: file, type: file.type, ext: direct };
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (!bitmap) throw new Error("image");
+  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  canvas.getContext("2d").drawImage(bitmap, 0, 0, width, height);
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+  if (!blob || blob.size > 5 * 1024 * 1024) throw new Error("size");
+  return { blob, type: "image/jpeg", ext: "jpg" };
+}
+
+async function insertMessage(row) {
+  const { error } = await supabase.from("wl_messages").insert(row);
+  if (error) throw error;
+  markSent();
+}
+
+async function submitTalk(form) {
+  if (form.dataset.sending === "1") return;
+  if (trapped(form)) {
     form.reset();
+    formNote(form, "Sent. Thank you.");
     return;
   }
-  const data = Object.fromEntries(new FormData(form).entries());
-  delete data.company;
-  const email = state.site?.email || "hello@wickedlyfe.example";
-  const endpoint = httpsUrl(state.site?.formspreeEndpoint || "");
-  if (endpoint) {
-    try {
-      const response = await fetch(endpoint.toString(), {
-        method: "POST",
-        headers: { Accept: "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, _subject: form.dataset.subject || "Wicked Lyfe" }),
+  if (sentTooSoon()) {
+    formNote(form, "Please wait a moment before sending another note.");
+    return;
+  }
+  const data = new FormData(form);
+  const name = String(data.get("name") || "").trim();
+  const email = String(data.get("email") || "").trim();
+  const topic = String(data.get("topic") || "").trim();
+  const message = String(data.get("message") || "").trim();
+  if (!name || !email || !topic || !message) {
+    formNote(form, "Add your name, email, a topic, and a message.");
+    return;
+  }
+  form.dataset.sending = "1";
+  formNote(form, "Sending…");
+  try {
+    let imagePath = null;
+    const file = form.querySelector('input[type="file"]')?.files?.[0];
+    const image = await prepareImage(file);
+    if (image) {
+      imagePath = `inbox/${crypto.randomUUID()}.${image.ext}`;
+      const upload = await supabase.storage.from("wl-inbox").upload(imagePath, image.blob, {
+        contentType: image.type,
+        upsert: false,
       });
-      if (!response.ok) throw new Error("form");
-      form.reset();
-      if (note) note.textContent = "Sent. Thank you.";
-    } catch {
-      if (note) note.textContent = `Could not send. Email ${email} instead.`;
+      if (upload.error) throw upload.error;
     }
+    await insertMessage({ name, email, topic, message, image_path: imagePath, status: "new" });
+    form.reset();
+    formNote(form, "Sent. Thank you.");
+  } catch (error) {
+    formNote(form, talkError(error));
+  } finally {
+    form.dataset.sending = "";
+  }
+}
+
+async function submitList(form) {
+  if (form.dataset.sending === "1") return;
+  if (trapped(form)) {
+    form.reset();
+    formNote(form, "You're on the list.");
     return;
   }
-  const body = Object.entries(data)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join("\n");
-  const subject = form.dataset.subject || "Wicked Lyfe";
-  if (note) note.textContent = `Opening your email app to write ${email}.`;
-  window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  if (sentTooSoon()) {
+    formNote(form, "Please wait a moment before sending another note.");
+    return;
+  }
+  const email = String(new FormData(form).get("email") || "").trim();
+  if (!email) {
+    formNote(form, "Add an email.");
+    return;
+  }
+  form.dataset.sending = "1";
+  formNote(form, "Sending…");
+  try {
+    await insertMessage({
+      name: "List signup",
+      email,
+      topic: "Other",
+      message: "Add me to the list for new music and drops.",
+      status: "new",
+    });
+    form.reset();
+    formNote(form, "You're on the list.");
+  } catch (error) {
+    formNote(form, talkError(error));
+  } finally {
+    form.dataset.sending = "";
+  }
 }
 
 function showError() {
@@ -902,11 +1012,50 @@ function productFromRow(row) {
   });
 }
 
+function applyMusicRows(rows) {
+  const releases = [];
+  const videos = [];
+  for (const row of rows || []) {
+    if (row.kind === "video") {
+      const video = normalizeVideo({
+        id: row.id,
+        title: row.title,
+        youtube: row.youtube_url,
+        poster: row.artwork_url || "assets/hero-night.jpg",
+      });
+      if (video) videos.push(video);
+    } else {
+      const release = normalizeRelease({
+        id: row.id,
+        title: row.title,
+        artist: row.artist,
+        type: row.release_type,
+        year: row.release_date ? String(row.release_date).slice(0, 4) : "",
+        featured: row.featured,
+        cover: row.artwork_url,
+        blurb: row.blurb,
+        spotify: row.spotify_url,
+        apple: row.apple_url,
+        youtube: row.youtube_url,
+        page: row.page_url,
+        badge: row.badge,
+      });
+      if (release) releases.push(release);
+    }
+  }
+  if (!releases.length && !videos.length) return;
+  if (releases.length) {
+    state.releases = releases;
+    state.activeReleaseId = releases.find((item) => item.badge)?.id || releases.find((item) => item.featured)?.id || releases[0].id;
+  }
+  if (videos.length) state.videos = videos;
+}
+
 async function loadRemote() {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-  const [settingsRes, productsRes] = await Promise.all([
-    supabase.from("wl_settings").select("*").eq("id", 1).maybeSingle(),
+  const [settingsRes, productsRes, musicRes] = await Promise.all([
+    supabase.from("wl_settings").select(SETTINGS_COLUMNS).eq("id", 1).maybeSingle(),
     supabase.from("wl_products").select("*").eq("active", true).order("sort_order", { ascending: true }),
+    supabase.from("wl_music").select(MUSIC_COLUMNS).eq("active", true).order("sort_order", { ascending: true }),
   ]);
   if (settingsRes.error) throw settingsRes.error;
   if (productsRes.error) throw productsRes.error;
@@ -914,6 +1063,7 @@ async function loadRemote() {
   return {
     brand: settingsRes.data,
     products: (productsRes.data || []).map(productFromRow).filter(Boolean),
+    music: musicRes.error ? null : musicRes.data,
   };
 }
 
@@ -959,7 +1109,6 @@ function applyBrand(brand) {
       );
     }
   }
-  if (brand.contact_email) state.site.email = String(brand.contact_email).trim();
   if (brand.accent_color && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(brand.accent_color).trim())) {
     document.documentElement.style.setProperty("--red", String(brand.accent_color).trim());
   }
@@ -991,6 +1140,7 @@ async function boot() {
   if (remote) {
     state.products = remote.products;
     applyBrand(remote.brand);
+    if (remote.music) applyMusicRows(remote.music);
   } else {
     state.brand = null;
     state.products = (catalog.products || []).map((item) => normalizeProduct({ ...item, sample: true })).filter(Boolean);
@@ -1139,12 +1289,29 @@ function bind() {
     }
   });
 
-  document.querySelectorAll("form[data-enhance]").forEach((form) => {
+  document.querySelectorAll("#talk-form, #list-form, #account-list").forEach((form) => {
+    form.dataset.opened = String(Date.now());
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      submitForm(form);
+      if (form.id === "talk-form") submitTalk(form);
+      else submitList(form);
     });
   });
+
+  const markSection = () => {
+    const links = [...document.querySelectorAll(".section-nav a")];
+    let current = null;
+    for (const link of links) {
+      const node = document.getElementById(link.getAttribute("href").slice(1));
+      if (node && node.getBoundingClientRect().top <= 140) current = link;
+    }
+    links.forEach((link) => {
+      if (link === current) link.setAttribute("aria-current", "true");
+      else link.removeAttribute("aria-current");
+    });
+  };
+  markSection();
+  document.addEventListener("scroll", markSection, { passive: true });
 }
 
 bind();

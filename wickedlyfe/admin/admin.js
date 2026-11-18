@@ -2,6 +2,9 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import { SUPABASE_KEY, SUPABASE_URL } from "../js/config.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const SETTINGS_COLUMNS =
+  "id,brand_name,tagline,bio,logo_url,music_url,instagram_url,accent_color,announcement,stripe_link,paypal_link";
+const MESSAGE_STATUSES = ["new", "in progress", "done"];
 const app = document.querySelector("#app");
 const toastNode = document.querySelector("#toast");
 const PRESET_SIZES = ["S", "M", "L", "XL", "2XL", "OS"];
@@ -19,7 +22,10 @@ const ui = {
   products: [],
   settings: null,
   requests: [],
+  music: [],
+  messages: [],
   editing: null,
+  editingMusic: null,
   busy: false,
 };
 
@@ -50,6 +56,7 @@ function friendly(error) {
   if (text === "price") return "Enter a price like 50, or leave it blank for Coming soon.";
   if (/failed to fetch|network|timeout/i.test(text)) return "Can't reach the shop right now. Check your connection and try again.";
   if (/otp|token|expired|invalid/i.test(text)) return "That code didn't work. Request a new one and try again.";
+  if (text === "url") return "Paste a full https link.";
   if (/rate|over_email|too many/i.test(text)) return "Too many emails just now. Wait a minute and try again.";
   if (/permission|row-level|jwt|42501|not authorized/i.test(text)) return "That didn't save. Sign in again, and make sure Ace Apps has approved this email.";
   return "Something went wrong. Try again in a moment.";
@@ -133,6 +140,8 @@ function loginView(message = "") {
 function shell(body) {
   const tabs = el("div", { class: "tabs", role: "tablist" }, [
     tabButton("products", "Products"),
+    tabButton("music", "Music"),
+    tabButton("messages", "Messages"),
     tabButton("brand", "Brand"),
     tabButton("ask", "Ask"),
   ]);
@@ -255,7 +264,7 @@ function brandForm() {
       field("Tagline", "tagline", settings.tagline),
       el("label", { for: "bio", text: "Bio" }),
       el("textarea", { id: "bio", name: "bio", text: settings.bio || "" }),
-      field("Music link", "music_url", settings.music_url, "url"),
+      field("Listen on all platforms", "music_url", settings.music_url, "url"),
       field("Instagram link", "instagram_url", settings.instagram_url, "url"),
       field("Announcement bar", "announcement", settings.announcement),
       el("p", { class: "help", text: "Leave the announcement blank to hide the bar." }),
@@ -263,7 +272,6 @@ function brandForm() {
       el("input", { id: "accent_color", name: "accent_color", type: "color", value: settings.accent_color || "#c8102e" }),
       field("Stripe link", "stripe_link", settings.stripe_link, "url"),
       field("PayPal link", "paypal_link", settings.paypal_link, "url"),
-      field("Contact email", "contact_email", settings.contact_email, "email"),
       el("p", { class: "error", id: "form-error", hidden: true }),
       el("div", { class: "actions" }, [el("button", { class: "btn wide", type: "submit", text: "Save" })]),
     ]),
@@ -307,9 +315,129 @@ function askView() {
   );
 }
 
+function musicRows(kind) {
+  return ui.music.filter((item) => item.kind === kind).sort((a, b) => a.sort_order - b.sort_order);
+}
+
+function musicList() {
+  const settings = ui.settings || {};
+  const group = (kind, label) => {
+    const rows = musicRows(kind);
+    return el("section", { class: "card" }, [
+      el("h2", { text: label }),
+      el("button", {
+        class: "btn wide",
+        type: "button",
+        "data-add-music": kind,
+        text: kind === "video" ? "Add video" : "Add release",
+      }),
+      ...rows.map((item, index) =>
+        el("article", { class: "item" }, [
+          el("img", { src: item.artwork_url || "../assets/cover-sample.jpg", alt: "" }),
+          el("div", {}, [
+            el("h2", { text: item.title }),
+            el("p", {
+              class: "meta",
+              text: [item.artist, item.release_type, item.badge, item.active ? "" : "Hidden"].filter(Boolean).join(" · "),
+            }),
+            el("div", { class: "row" }, [
+              el("button", { class: "mini", type: "button", "data-edit-music": item.id, text: "Edit" }),
+              el("button", { class: "mini", type: "button", "data-music-up": item.id, text: "Up", disabled: index === 0 }),
+              el("button", { class: "mini", type: "button", "data-music-down": item.id, text: "Down", disabled: index === rows.length - 1 }),
+            ]),
+          ]),
+        ]),
+      ),
+    ]);
+  };
+  shell(
+    el("div", { class: "chat" }, [
+      el("form", { id: "platforms-form", class: "card" }, [
+        el("h2", { text: "Listen link" }),
+        el("p", { class: "help", text: "The button on the music page. Paste the UnitedMasters artist page." }),
+        field("Listen on all platforms", "music_url", settings.music_url, "url"),
+        el("p", { class: "error", id: "form-error", hidden: true }),
+        el("div", { class: "actions" }, [el("button", { class: "btn wide", type: "submit", text: "Save" })]),
+      ]),
+      group("release", "Releases"),
+      group("video", "Videos"),
+    ]),
+  );
+}
+
+function musicEditor(item) {
+  const video = item.kind === "video";
+  shell(
+    el("form", { id: "music-form", class: "card", "data-id": item.id || "", "data-kind": item.kind || "release" }, [
+      el("button", { class: "mini", id: "music-back", type: "button", text: "Back" }),
+      el("h2", { text: item.id ? "Edit" : video ? "New video" : "New release" }),
+      field("Title", "title", item.title),
+      field("Artist", "artist", item.artist || "DAYxDAY"),
+      video ? null : field("Type", "release_type", item.release_type || "Release"),
+      field("Year or date", "release_date", item.release_date || "", "date"),
+      field("Badge", "badge", item.badge),
+      el("p", { class: "help", text: "The badge shows on the music hero. Leave it blank to hide it." }),
+      field("Artwork link", "artwork_url", item.artwork_url, "url"),
+      item.artwork_url ? el("img", { class: "thumb", src: item.artwork_url, alt: "" }) : null,
+      el("label", { for: "artwork-file", text: "Or upload artwork" }),
+      el("input", { id: "artwork-file", type: "file", accept: "image/*" }),
+      video ? null : field("Spotify link", "spotify_url", item.spotify_url, "url"),
+      video ? null : field("Apple Music link", "apple_url", item.apple_url, "url"),
+      field("YouTube link", "youtube_url", item.youtube_url, "url"),
+      field("Release page", "page_url", item.page_url, "url"),
+      video ? null : el("label", { for: "blurb", text: "Note" }),
+      video ? null : el("textarea", { id: "blurb", name: "blurb", text: item.blurb || "" }),
+      toggle("Featured", "featured", item.featured),
+      toggle("Show on site", "active", item.active !== false),
+      el("p", { class: "error", id: "form-error", hidden: true }),
+      el("div", { class: "actions" }, [
+        el("button", { class: "btn wide", type: "submit", text: "Save" }),
+        item.id ? el("button", { class: "btn danger wide", id: "delete-music", type: "button", text: "Delete" }) : null,
+      ]),
+    ]),
+  );
+}
+
+function messagesView() {
+  const cards = ui.messages.map((message) =>
+    el("article", { class: "bubble", "data-message": message.id }, [
+      el("p", { class: "who", text: `${new Date(message.created_at).toLocaleString()} · ${message.topic}` }),
+      el("h2", { text: message.name }),
+      el("p", { class: "meta", text: message.email }),
+      el("p", { text: message.message }),
+      message.previewUrl
+        ? el("a", { href: message.previewUrl, target: "_blank", rel: "noopener noreferrer" }, [
+            el("img", { class: "message-photo", src: message.previewUrl, alt: "Photo from the note" }),
+          ])
+        : null,
+      el("label", { for: `status-${message.id}`, text: "Status" }),
+      el(
+        "select",
+        { id: `status-${message.id}`, "data-status": message.id },
+        MESSAGE_STATUSES.map((status) =>
+          el("option", { value: status, selected: message.status === status ? true : null, text: status }),
+        ),
+      ),
+      el("div", { class: "actions" }, [
+        el("button", { class: "btn wide", type: "button", "data-gear": message.id, text: "New gear request" }),
+      ]),
+    ]),
+  );
+  shell(
+    el("section", { class: "chat" }, [
+      el("h2", { text: "Messages" }),
+      el("p", { class: "help", text: "Notes from Talk to us. Change the status when you pick it up." }),
+      el("p", { class: "error", id: "form-error", hidden: true }),
+      ...(cards.length ? cards : [el("p", { class: "help", text: "No messages yet." })]),
+    ]),
+  );
+}
+
 function render() {
   if (ui.tab === "brand") brandForm();
   else if (ui.tab === "ask") askView();
+  else if (ui.tab === "music") ui.editingMusic ? musicEditor(ui.editingMusic) : musicList();
+  else if (ui.tab === "messages") messagesView();
   else if (ui.editing) editor(ui.editing);
   else productList();
 }
@@ -328,17 +456,30 @@ async function requireAdmin(session) {
 }
 
 async function loadShop() {
-  const [productsRes, settingsRes, requestsRes] = await Promise.all([
+  const [productsRes, settingsRes, requestsRes, musicRes, messagesRes] = await Promise.all([
     supabase.from("wl_products").select("*").order("sort_order", { ascending: true }),
-    supabase.from("wl_settings").select("*").eq("id", 1).maybeSingle(),
+    supabase.from("wl_settings").select(SETTINGS_COLUMNS).eq("id", 1).maybeSingle(),
     supabase.from("wl_requests").select("*").order("created_at", { ascending: false }),
+    supabase.from("wl_music").select("*").order("sort_order", { ascending: true }),
+    supabase.from("wl_messages").select("*").order("created_at", { ascending: false }),
   ]);
   if (productsRes.error) throw productsRes.error;
   if (settingsRes.error) throw settingsRes.error;
   if (requestsRes.error) throw requestsRes.error;
+  if (musicRes.error) throw musicRes.error;
+  if (messagesRes.error) throw messagesRes.error;
   ui.products = productsRes.data || [];
   ui.settings = settingsRes.data;
   ui.requests = requestsRes.data || [];
+  ui.music = musicRes.data || [];
+  ui.messages = messagesRes.data || [];
+  await Promise.all(
+    ui.messages.map(async (message) => {
+      if (!message.image_path) return;
+      const signed = await supabase.storage.from("wl-inbox").createSignedUrl(message.image_path, 60 * 30);
+      message.previewUrl = signed.data?.signedUrl || "";
+    }),
+  );
 }
 
 async function enterApp(session) {
@@ -514,7 +655,6 @@ async function onSubmitBrand(event) {
       accent_color: String(data.get("accent_color") || "").trim() || null,
       stripe_link: String(data.get("stripe_link") || "").trim() || null,
       paypal_link: String(data.get("paypal_link") || "").trim() || null,
-      contact_email: String(data.get("contact_email") || "").trim() || null,
       logo_url: logoUrl,
       updated_at: new Date().toISOString(),
     };
@@ -602,45 +742,212 @@ function mockProducts() {
   ];
 }
 
+function isPreview() {
+  return new URLSearchParams(location.search).has("preview");
+}
+
 function showPreview() {
   ui.products = mockProducts();
-  ui.tab = "products";
+  ui.settings = {
+    tagline: "Apparel · Founded by DAYxDAY",
+    music_url: "https://unitedmasters.com/a/dayxday",
+    bio: "Taking on everything — Music, Acting, Art, Media. We just getting started. Join the community.",
+  };
+  ui.music = [
+    {
+      id: "preview-ep",
+      kind: "release",
+      title: "Me Vs Me",
+      artist: "DAYxDAY",
+      release_type: "EP",
+      badge: "New EP out now",
+      artwork_url: "https://united-masters.imgix.net/mRTBHw2bdamC?fit=crop&w=200&h=200&q=70&auto=compress,format",
+      active: true,
+      featured: true,
+      sort_order: 1,
+    },
+  ];
+  ui.messages = [
+    {
+      id: "preview-note",
+      created_at: new Date().toISOString(),
+      name: "Preview",
+      email: "preview@example.com",
+      topic: "Add new gear",
+      message: "Black hoodie, heavyweight. Layout preview only.",
+      status: "new",
+    },
+  ];
+  ui.requests = [];
   ui.editing = null;
-  app.replaceChildren(
-    el("div", {}, [
-      el("p", { class: "banner", text: "Layout preview. This is not signed in and cannot change the shop." }),
-      el("div", { class: "tabs" }, [tabButton("products", "Products"), tabButton("brand", "Brand"), tabButton("ask", "Ask")]),
-      el("section", {}, [
-        el("button", { class: "btn wide", type: "button", text: "Add item" }),
-        el(
-          "div",
-          { class: "card" },
-          ui.products.map((product, index) =>
-            el("article", { class: "item" }, [
-              thumb(product),
-              el("div", {}, [
-                el("h2", { text: product.name }),
-                el("p", { class: "meta", text: `${money(product.price_cents)}${product.sold_out ? " · Sold out" : ""}` }),
-                el("div", { class: "row" }, [
-                  el("button", { class: "mini", type: "button", text: "Edit" }),
-                  el("button", { class: "mini", type: "button", text: "Up", disabled: index === 0 }),
-                  el("button", { class: "mini", type: "button", text: "Down", disabled: index === ui.products.length - 1 }),
-                ]),
-              ]),
-            ]),
-          ),
-        ),
-      ]),
-    ]),
-  );
+  render();
+  app.prepend(el("p", { class: "banner", text: "Layout preview. This is not signed in and cannot change the shop." }));
+}
+
+function httpsOrNull(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+  let url;
+  try {
+    url = new URL(text);
+  } catch {
+    throw new Error("url");
+  }
+  if (url.protocol !== "https:") throw new Error("url");
+  return url.toString();
+}
+
+function readMusicForm() {
+  const form = $("#music-form");
+  const data = new FormData(form);
+  const title = String(data.get("title") || "").trim();
+  if (!title) throw new Error("name");
+  const kind = form.dataset.kind || "release";
+  return {
+    id: form.dataset.id || null,
+    kind,
+    title,
+    artist: String(data.get("artist") || "").trim() || "DAYxDAY",
+    release_type: kind === "video" ? "Video" : String(data.get("release_type") || "").trim() || "Release",
+    release_date: String(data.get("release_date") || "").trim() || null,
+    badge: String(data.get("badge") || "").trim() || null,
+    artwork_url: httpsOrNull(data.get("artwork_url")),
+    blurb: String(data.get("blurb") || "").trim() || null,
+    spotify_url: httpsOrNull(data.get("spotify_url")),
+    apple_url: httpsOrNull(data.get("apple_url")),
+    youtube_url: httpsOrNull(data.get("youtube_url")),
+    page_url: httpsOrNull(data.get("page_url")),
+    featured: Boolean(form.querySelector("[name=featured]")?.checked),
+    active: Boolean(form.querySelector("[name=active]")?.checked),
+  };
+}
+
+async function onSubmitPlatforms(event) {
+  event.preventDefault();
+  if (isPreview()) return;
+  formError("");
+  try {
+    const link = httpsOrNull(new FormData(event.currentTarget).get("music_url"));
+    const { error } = await supabase.from("wl_settings").update({ music_url: link, updated_at: new Date().toISOString() }).eq("id", 1);
+    if (error) throw error;
+    await loadShop();
+    toast();
+    render();
+  } catch (error) {
+    formError(error.message === "url" ? "Paste a full https link." : friendly(error));
+  }
+}
+
+async function onSubmitMusic(event) {
+  event.preventDefault();
+  if (isPreview()) return;
+  formError("");
+  let draft;
+  try {
+    draft = readMusicForm();
+  } catch (error) {
+    formError(error.message === "name" ? "Add a title." : error.message === "url" ? "Paste full https links, or leave them blank." : friendly(error));
+    return;
+  }
+  if (draft.kind === "video" && !draft.youtube_url) {
+    formError("Add the YouTube link.");
+    return;
+  }
+  try {
+    const file = $("#artwork-file")?.files?.[0];
+    if (file) draft.artwork_url = await uploadImage(file, "music");
+    const payload = { ...draft, updated_at: new Date().toISOString() };
+    delete payload.id;
+    if (draft.id) {
+      const { error } = await supabase.from("wl_music").update(payload).eq("id", draft.id);
+      if (error) throw error;
+    } else {
+      const siblings = musicRows(draft.kind);
+      payload.sort_order = siblings.length + 1;
+      const inserted = await supabase.from("wl_music").insert(payload).select("*").single();
+      if (inserted.error) throw inserted.error;
+      draft.id = inserted.data.id;
+    }
+    await loadShop();
+    ui.editingMusic = ui.music.find((item) => item.id === draft.id) || null;
+    toast();
+    render();
+  } catch (error) {
+    formError(error.message === "image" ? "That file isn't a photo." : friendly(error));
+  }
+}
+
+async function moveMusic(id, direction) {
+  const item = ui.music.find((row) => row.id === id);
+  if (!item) return;
+  const rows = musicRows(item.kind);
+  const index = rows.findIndex((row) => row.id === id);
+  const next = index + direction;
+  if (next < 0 || next >= rows.length) return;
+  const copy = rows.slice();
+  const [moved] = copy.splice(index, 1);
+  copy.splice(next, 0, moved);
+  for (let order = 0; order < copy.length; order += 1) {
+    const { error } = await supabase.from("wl_music").update({ sort_order: order + 1 }).eq("id", copy[order].id);
+    if (error) throw error;
+    copy[order].sort_order = order + 1;
+  }
+}
+
+function draftName(message) {
+  const line = String(message.message || "").trim().split("\n")[0].trim();
+  if (line.length >= 3 && line.length <= 48) return line;
+  return "New gear";
+}
+
+async function gearFromMessage(message) {
+  let images = [];
+  if (message.image_path) {
+    const downloaded = await supabase.storage.from("wl-inbox").download(message.image_path);
+    if (downloaded.error) throw downloaded.error;
+    const ext = (message.image_path.split(".").pop() || "jpg").toLowerCase();
+    const type = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif" }[ext] || "image/jpeg";
+    const path = `products/${crypto.randomUUID()}.${ext === "jpeg" ? "jpg" : ext}`;
+    const upload = await supabase.storage.from("wl-media").upload(path, downloaded.data, { contentType: type, upsert: false });
+    if (upload.error) throw upload.error;
+    images = [supabase.storage.from("wl-media").getPublicUrl(path).data.publicUrl];
+  }
+  const name = draftName(message);
+  const payload = {
+    name,
+    description: message.message,
+    price_cents: null,
+    sizes: ["OS"],
+    images,
+    category: "gear",
+    sold_out: false,
+    featured: false,
+    active: false,
+    slug: slugify(name),
+    sort_order: ui.products.length + 1,
+    updated_at: new Date().toISOString(),
+  };
+  let inserted = await supabase.from("wl_products").insert(payload).select("*").single();
+  if (inserted.error && /duplicate|23505/i.test(`${inserted.error.code || ""} ${inserted.error.message || ""}`)) {
+    payload.slug = `${payload.slug}-${crypto.randomUUID().slice(0, 4)}`;
+    inserted = await supabase.from("wl_products").insert(payload).select("*").single();
+  }
+  if (inserted.error) throw inserted.error;
+  await loadShop();
+  ui.tab = "products";
+  ui.editing = ui.products.find((item) => item.id === inserted.data.id) || null;
+  toast("Draft ready");
+  render();
 }
 
 document.addEventListener("click", async (event) => {
   const tab = event.target.closest("[data-tab]");
-  if (tab && !new URLSearchParams(location.search).has("preview")) {
+  if (tab) {
     ui.tab = tab.dataset.tab;
     ui.editing = null;
-    render();
+    ui.editingMusic = null;
+    if (isPreview()) showPreview();
+    else render();
     return;
   }
   if (event.target.closest("#send-code")) {
@@ -737,6 +1044,68 @@ document.addEventListener("click", async (event) => {
     if (path) supabase.storage.from("wl-media").remove([path]).catch(() => {});
     return;
   }
+  const addMusic = event.target.closest("[data-add-music]");
+  if (addMusic && !isPreview()) {
+    ui.editingMusic = {
+      kind: addMusic.dataset.addMusic,
+      title: "",
+      artist: "DAYxDAY",
+      release_type: addMusic.dataset.addMusic === "video" ? "Video" : "Release",
+      active: true,
+      featured: false,
+    };
+    render();
+    return;
+  }
+  const editMusic = event.target.closest("[data-edit-music]");
+  if (editMusic && !isPreview()) {
+    ui.editingMusic = ui.music.find((item) => item.id === editMusic.dataset.editMusic) || null;
+    render();
+    return;
+  }
+  if (event.target.closest("#music-back")) {
+    ui.editingMusic = null;
+    render();
+    return;
+  }
+  const musicUp = event.target.closest("[data-music-up]");
+  const musicDown = event.target.closest("[data-music-down]");
+  if ((musicUp || musicDown) && !isPreview()) {
+    try {
+      await moveMusic((musicUp || musicDown).dataset.musicUp || (musicUp || musicDown).dataset.musicDown, musicUp ? -1 : 1);
+      toast();
+      render();
+    } catch (error) {
+      formError(friendly(error));
+    }
+    return;
+  }
+  if (event.target.closest("#delete-music") && !isPreview()) {
+    const id = $("#music-form")?.dataset.id;
+    if (!id || !confirm("Delete this from the music page?")) return;
+    try {
+      const { error } = await supabase.from("wl_music").delete().eq("id", id);
+      if (error) throw error;
+      ui.editingMusic = null;
+      await loadShop();
+      toast();
+      render();
+    } catch (error) {
+      formError(friendly(error));
+    }
+    return;
+  }
+  const gear = event.target.closest("[data-gear]");
+  if (gear && !isPreview()) {
+    const message = ui.messages.find((item) => item.id === gear.dataset.gear);
+    if (!message) return;
+    try {
+      await gearFromMessage(message);
+    } catch (error) {
+      formError(friendly(error));
+    }
+    return;
+  }
   if (event.target.closest("#delete-item")) {
     const id = $("#product-form")?.dataset.id;
     if (!id || !confirm("Delete this item? This cannot be undone.")) return;
@@ -757,6 +1126,27 @@ document.addEventListener("submit", (event) => {
   if (event.target.id === "product-form") onSubmitProduct(event);
   if (event.target.id === "brand-form") onSubmitBrand(event);
   if (event.target.id === "ask-form") onSubmitAsk(event);
+  if (event.target.id === "platforms-form") onSubmitPlatforms(event);
+  if (event.target.id === "music-form") onSubmitMusic(event);
+});
+
+document.addEventListener("change", async (event) => {
+  const select = event.target.closest("[data-status]");
+  if (!select) return;
+  const message = ui.messages.find((item) => item.id === select.dataset.status);
+  if (!message || message.status === select.value) return;
+  if (isPreview()) {
+    message.status = select.value;
+    return;
+  }
+  const { error } = await supabase.from("wl_messages").update({ status: select.value }).eq("id", message.id);
+  if (error) {
+    formError(friendly(error));
+    select.value = message.status;
+    return;
+  }
+  message.status = select.value;
+  toast();
 });
 
 document.addEventListener("change", async (event) => {
@@ -803,7 +1193,9 @@ document.addEventListener("drop", async (event) => {
   }
 });
 
-if (new URLSearchParams(location.search).get("preview") === "1") {
+if (isPreview()) {
+  const asked = new URLSearchParams(location.search).get("preview");
+  if (asked && asked !== "1") ui.tab = asked;
   showPreview();
 } else {
   let sawSession = false;
