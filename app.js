@@ -1,6 +1,7 @@
 // Contact form: insert-only table (RLS: anon may insert, nobody can read via the public key).
 const SB='https://czjwiudbasqwlwvezmaz.supabase.co', KEY='sb_publishable_I9N8lydmQ1h6NQD6JT-jDQ_PQkjsBAK';
 const f=document.getElementById('lead'), s=document.getElementById('status');
+document.querySelectorAll('[data-project]').forEach(a=>a.addEventListener('click',()=>{ f.project.value=a.dataset.project; }));
 f.addEventListener('submit', async e=>{
   e.preventDefault();
   if(f.website.value) return; // bot trap
