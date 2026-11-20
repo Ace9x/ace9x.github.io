@@ -1,9 +1,11 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm";
 import { SUPABASE_KEY, SUPABASE_URL } from "../js/config.js";
+import { httpsUrl } from "../js/payments.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-const SETTINGS_COLUMNS =
+const SETTINGS_CORE =
   "id,brand_name,tagline,bio,logo_url,music_url,instagram_url,accent_color,announcement,stripe_link,paypal_link";
+const SETTINGS_COLUMNS = `${SETTINGS_CORE},payment_link`;
 const MESSAGE_STATUSES = ["new", "in progress", "done"];
 const app = document.querySelector("#app");
 const toastNode = document.querySelector("#toast");
@@ -58,6 +60,7 @@ function friendly(error) {
   if (/otp|token|expired|invalid/i.test(text)) return "That code didn't work. Request a new one and try again.";
   if (text === "url") return "Paste a full https link.";
   if (/rate|over_email|too many/i.test(text)) return "Too many emails just now. Wait a minute and try again.";
+  if (/payment_link/i.test(text)) return "The Jim field needs the payment_link column. The shop still uses the default Jim page until that column exists.";
   if (/permission|row-level|jwt|42501|not authorized/i.test(text)) return "That didn't save. Sign in again, and make sure Ace Apps has approved this email.";
   return "Something went wrong. Try again in a moment.";
 }
@@ -230,6 +233,7 @@ function editor(product) {
       toggle("Show on site", "active", product.active !== false),
       el("label", { for: "buy_url", text: "Buy link" }),
       el("input", { id: "buy_url", name: "buy_url", type: "url", placeholder: "https://", value: product.buy_url || "" }),
+      el("p", { class: "help", text: "The shop does not use this for checkout. Buy uses the Jim link under Brand." }),
       el("label", { text: "Photos" }),
       el("p", { class: "help", text: "Take a photo or pick one from your gallery. We shrink it before upload." }),
       el("input", { id: "photos", type: "file", accept: "image/*", multiple: true }),
@@ -270,8 +274,14 @@ function brandForm() {
       el("p", { class: "help", text: "Leave the announcement blank to hide the bar." }),
       el("label", { for: "accent_color", text: "Accent color" }),
       el("input", { id: "accent_color", name: "accent_color", type: "color", value: settings.accent_color || "#c8102e" }),
+      field("Jim", "payment_link", settings.payment_link, "url"),
+      el("p", {
+        class: "help",
+        text: "Checkout for every in-stock piece. Leave blank to use https://pay.jim.com/wicked-lyfe-inc-llc. Buy shows a note first: the item name, size, and price go in the payment note, then the buyer DMs @wickedlyfe_inc with a shipping address.",
+      }),
       field("Stripe link", "stripe_link", settings.stripe_link, "url"),
       field("PayPal link", "paypal_link", settings.paypal_link, "url"),
+      el("p", { class: "help", text: "Stripe and PayPal are not used for shop checkout." }),
       el("p", { class: "error", id: "form-error", hidden: true }),
       el("div", { class: "actions" }, [el("button", { class: "btn wide", type: "submit", text: "Save" })]),
     ]),
@@ -455,10 +465,19 @@ async function requireAdmin(session) {
   return true;
 }
 
+async function loadSettings() {
+  let result = await supabase.from("wl_settings").select(SETTINGS_COLUMNS).eq("id", 1).maybeSingle();
+  const missingLink = /payment_link/i.test(`${result.error?.message || ""} ${result.error?.details || ""} ${result.error?.hint || ""}`);
+  if (result.error && missingLink) {
+    result = await supabase.from("wl_settings").select(SETTINGS_CORE).eq("id", 1).maybeSingle();
+  }
+  return result;
+}
+
 async function loadShop() {
   const [productsRes, settingsRes, requestsRes, musicRes, messagesRes] = await Promise.all([
     supabase.from("wl_products").select("*").order("sort_order", { ascending: true }),
-    supabase.from("wl_settings").select(SETTINGS_COLUMNS).eq("id", 1).maybeSingle(),
+    loadSettings(),
     supabase.from("wl_requests").select("*").order("created_at", { ascending: false }),
     supabase.from("wl_music").select("*").order("sort_order", { ascending: true }),
     supabase.from("wl_messages").select("*").order("created_at", { ascending: false }),
@@ -642,6 +661,11 @@ async function onSubmitBrand(event) {
   event.preventDefault();
   formError("");
   const data = new FormData(event.currentTarget);
+  const jim = String(data.get("payment_link") || "").trim();
+  if (jim && !httpsUrl(jim)) {
+    formError("Paste a full https link for Jim.");
+    return;
+  }
   const file = $("#logo").files?.[0];
   try {
     let logoUrl = ui.settings?.logo_url || null;
@@ -653,6 +677,7 @@ async function onSubmitBrand(event) {
       instagram_url: String(data.get("instagram_url") || "").trim() || null,
       announcement: String(data.get("announcement") || "").trim() || null,
       accent_color: String(data.get("accent_color") || "").trim() || null,
+      payment_link: jim || null,
       stripe_link: String(data.get("stripe_link") || "").trim() || null,
       paypal_link: String(data.get("paypal_link") || "").trim() || null,
       logo_url: logoUrl,
@@ -750,6 +775,7 @@ function showPreview() {
   ui.products = mockProducts();
   ui.settings = {
     tagline: "Apparel · Founded by DAYxDAY",
+    payment_link: "https://pay.jim.com/wicked-lyfe-inc-llc",
     music_url: "https://unitedmasters.com/a/dayxday",
     bio: "Taking on everything — Music, Acting, Art, Media. We just getting started. Join the community.",
   };

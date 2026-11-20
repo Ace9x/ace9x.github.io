@@ -1,5 +1,5 @@
 {
-  "_note": "Sample catalog. Display prices are not charged. Paste a Stripe Payment Link into payments.stripe (https://buy.stripe.com/...) or a PayPal URL into payments.paypal (https://paypal.me/name/85 or a hosted-button URL). Leave a string empty until you have the real link. priceLabel replaces the dollar amount (use it for TBD). soldOut hides checkout.",
+  "_note": "Fallback catalog used only if the shop cannot reach Supabase. Checkout is wl_settings.payment_link, or https://pay.jim.com/wicked-lyfe-inc-llc when that is empty. soldOut hides Buy.",
   "currency": "USD",
   "products": [
     {
@@ -7,8 +7,8 @@
       "name": "Mix Media 90s Hat",
       "price": 50,
       "image": "assets/products/cap.jpg",
-      "alt": "Sample photo standing in for the Mix Media 90s Hat",
-      "description": "Brooklyn mix-media 90s hat. The photo is a sample stand-in. The $50 price is marked SAMPLE until a payment link is added.",
+      "alt": "Mix Media 90s Hat",
+      "description": "Mix-media 90s hat.",
       "sizes": ["OS"],
       "payments": { "stripe": "", "paypal": "" }
     },
@@ -18,8 +18,8 @@
       "price": 0,
       "soldOut": true,
       "image": "assets/products/crewneck.jpg",
-      "alt": "Sample photo standing in for the Custom Bleach-Dye Overhood Sweater",
-      "description": "Custom bleach-dye overhood sweater. Sold out. The photo is a sample stand-in, not a product shot from Instagram.",
+      "alt": "Custom Bleach-Dye Overhood Sweater",
+      "description": "Custom bleach-dye overhood sweater. Sold out.",
       "sizes": ["S", "M", "L", "XL"],
       "payments": { "stripe": "", "paypal": "" }
     },
@@ -29,8 +29,8 @@
       "price": 0,
       "priceLabel": "TBD",
       "image": "assets/products/tee.jpg",
-      "alt": "Sample photo standing in for the Wicked Lyfe Graphic Tee",
-      "description": "Wicked Lyfe graphic tee. Sample photo. Price TBD, marked SAMPLE until a payment link is added.",
+      "alt": "Wicked Lyfe Graphic Tee",
+      "description": "Wicked Lyfe graphic tee.",
       "sizes": ["S", "M", "L", "XL"],
       "payments": { "stripe": "", "paypal": "" }
     },
@@ -40,8 +40,8 @@
       "price": 0,
       "priceLabel": "TBD",
       "image": "assets/products/hoodie.jpg",
-      "alt": "Sample photo standing in for the Wicked Lyfe Graphic Hoodie",
-      "description": "Wicked Lyfe graphic hoodie. Sample photo. Price TBD, marked SAMPLE until a payment link is added.",
+      "alt": "Wicked Lyfe Graphic Hoodie",
+      "description": "Wicked Lyfe graphic hoodie.",
       "sizes": ["S", "M", "L", "XL"],
       "payments": { "stripe": "", "paypal": "" }
     }

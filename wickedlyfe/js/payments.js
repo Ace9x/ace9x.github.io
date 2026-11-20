@@ -1,4 +1,6 @@
-/** Payment-link helpers. Paste Stripe Payment Links or PayPal URLs in data/products.json. */
+/** Payment-link helpers. Shop checkout uses the Jim payment page. */
+
+export const DEFAULT_PAYMENT_LINK = "https://pay.jim.com/wicked-lyfe-inc-llc";
 
 export function isPlaceholder(value) {
   if (value == null) return true;
@@ -18,6 +20,12 @@ export function httpsUrl(value) {
   if (url.protocol !== "https:") return null;
   if (url.username || url.password) return null;
   return url;
+}
+
+/** Checkout URL for every in-stock piece. Blank or invalid values use the Jim page. */
+export function paymentLink(value) {
+  const url = httpsUrl(value);
+  return url ? url.toString() : DEFAULT_PAYMENT_LINK;
 }
 
 export function describeLink(value) {
