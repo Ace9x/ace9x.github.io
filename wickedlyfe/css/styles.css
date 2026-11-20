@@ -192,6 +192,23 @@ a {
   margin-top: 1.2rem;
 }
 
+.pay-items {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.pay-items p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.pay-note a,
+.pay-help a,
+#pay-instructions a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 .price {
   display: block;
   margin: 0.2rem 0 0;

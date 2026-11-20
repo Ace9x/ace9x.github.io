@@ -11,7 +11,7 @@ The public site does not show an email address or a home address. People reach t
 Tap **Products**.
 
 - **Add item** starts a new piece.
-- **Edit** changes the name, the price in dollars, the description, and the buy link.
+- **Edit** changes the name, the price in dollars, and the description. Checkout for every in-stock piece is the Jim link under Brand.
 - Leave the price blank to show **Coming soon**.
 - Tap the size chips (S, M, L, XL, 2XL, One size). Add any other size in the box.
 - **Sold out** puts a sold-out badge on the site.
@@ -49,11 +49,25 @@ Tap **Messages**. These are the notes from **Talk to us** on the site.
 
 ## Brand
 
-Tap **Brand** to change the logo, tagline, bio, the listen link, Instagram link, announcement, accent color, Stripe link, and PayPal link.
+Tap **Brand** to change the logo, tagline, bio, the listen link, Instagram link, announcement, accent color, and the Jim payment link.
 
 Leave the announcement blank to hide that bar. A logo you upload replaces the mark in the header and the big hero.
 
-Stripe or PayPal links are the checkout buttons. A buy link on one piece overrides those for that piece. If neither is set, the button says **DM to order** and opens Instagram.
+**Jim** is the checkout link for every piece that is not sold out. Buy shows a note first. The buyer enters the item name, size, and price in the payment note, then DMs @wickedlyfe_inc on Instagram with a shipping address. Leave Jim blank and the shop uses https://pay.jim.com/wicked-lyfe-inc-llc. That page pays Wicked Lyfe directly.
+
+Stripe and PayPal on this screen are not used for shop checkout. A buy link on one piece is not used for shop checkout either.
+
+If Jim does not save and the message mentions `payment_link`, add the column in the Supabase SQL editor, then save Jim again:
+
+```sql
+alter table public.wl_settings
+  add column if not exists payment_link text;
+
+update public.wl_settings
+set payment_link = 'https://pay.jim.com/wicked-lyfe-inc-llc'
+where id = 1
+  and (payment_link is null or btrim(payment_link) = '');
+```
 
 ## Ask the assistant
 

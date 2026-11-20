@@ -7,7 +7,7 @@
     <title>Wicked Lyfe — Apparel</title>
     <meta
       name="description"
-      content="Wicked Lyfe apparel. Shop the sample collection, hear music from the founder, and join the list."
+      content="Wicked Lyfe apparel. Shop the collection, hear music from the founder, and join the list."
     />
     <meta name="theme-color" content="#000000" />
     <meta property="og:title" content="Wicked Lyfe — Apparel" />
@@ -81,8 +81,8 @@
         <a href="#talk">Talk to us</a>
       </nav>
       <div id="search-panel" class="search-panel" hidden>
-        <label class="sr-only" for="search-input">Search sample pieces</label>
-        <input id="search-input" type="search" placeholder="Search sample pieces" autocomplete="off" />
+        <label class="sr-only" for="search-input">Search the shop</label>
+        <input id="search-input" type="search" placeholder="Search the shop" autocomplete="off" />
         <button type="button" class="text-btn" id="search-clear">Clear</button>
       </div>
     </header>
@@ -131,12 +131,12 @@
             <div>
               <p class="eyebrow">Collection</p>
               <h2 class="display" id="shop-title">Shop</h2>
-              <p class="result-count" id="result-count">Loading sample pieces</p>
+              <p class="result-count" id="result-count">Loading the shop</p>
             </div>
-            <p class="section-note" id="shop-note">Sample pieces. Every price is marked SAMPLE until a real payment link is pasted in.</p>
+            <p class="section-note" id="shop-note">Sold out pieces stay on the page. Buy on an in-stock piece pays on Jim.</p>
           </div>
           <p id="filter-status" class="sr-only" aria-live="polite"></p>
-          <p id="loading-note" class="sr-only">Loading the sample collection.</p>
+          <p id="loading-note" class="sr-only">Loading the shop.</p>
           <div id="load-error" class="banner" role="alert" hidden>
             <p>The catalog didn’t load. Refresh the page. If you opened this file from your desktop, use a local server instead — the shop reads JSON.</p>
           </div>
@@ -149,7 +149,7 @@
             <div class="skeleton"></div>
           </div>
           <noscript>
-            <p class="section-note">JavaScript is required to load the sample catalog from data/products.json.</p>
+            <p class="section-note">JavaScript is required to load the shop.</p>
           </noscript>
         </div>
       </section>
@@ -194,9 +194,7 @@
             </picture>
             <h2 class="display" id="about-title">Taking on everything.</h2>
             <p id="about-bio">Taking on everything — Music, Acting, Art, Media. We just getting started. Join the community.</p>
-            <p id="about-note">
-              Wicked Lyfe is apparel. The shop photos and the prices marked SAMPLE are placeholders. The overhood sweater is sold out. Graphic pieces are TBD until a payment link is added.
-            </p>
+            <p id="about-note">Wicked Lyfe is apparel. Sold out pieces stay on the page. In-stock pieces check out on Jim.</p>
           </div>
         </div>
       </section>
@@ -305,7 +303,7 @@
         <ul class="social-list" id="social-list">
           <li><a href="https://www.instagram.com/wickedlyfe_inc" target="_blank" rel="noopener noreferrer">Instagram</a></li>
         </ul>
-        <p class="fine">Sample catalog for Wicked Lyfe. Prices marked SAMPLE are not for sale until a payment link is added. Instagram @wickedlyfe_inc.</p>
+        <p class="fine">Wicked Lyfe apparel. Instagram @wickedlyfe_inc.</p>
         <div class="legal">
           <span>© <span id="year">2026</span> <span data-brand>Wicked Lyfe</span></span>
           <span class="credit">Site by Ace Apps · <a class="admin-link" href="admin/">Admin</a></span>
@@ -339,7 +337,7 @@
         <div class="sheet-body">
           <p class="eyebrow">Account</p>
           <h2 id="account-title">No accounts yet</h2>
-          <p class="help">Orders will live on the Stripe or PayPal page connected to each piece. Join the list for new music and drops.</p>
+          <p class="help">Orders are paid on the Jim payment page. Join the list for new music and drops.</p>
           <form id="account-list" action="#talk" method="post">
             <div class="field">
               <label class="label" for="account-email">Email</label>
@@ -377,13 +375,36 @@
           <div id="cart-items"></div>
           <div id="cart-foot">
             <div class="subtotal">
-              <span><span class="sample">SAMPLE</span> subtotal</span>
+              <span>Subtotal</span>
               <span id="cart-subtotal">$0</span>
             </div>
             <h3 class="label checkout-label">Checkout</h3>
-            <p class="pay-help">Each piece checks out on its own link. Sample prices are not a charge. The link charges whatever you set on Stripe or PayPal.</p>
+            <p class="pay-help">
+              Jim is a payment request link. In the payment note, enter the item name, size, and price. Then DM
+              <a href="https://www.instagram.com/wickedlyfe_inc" target="_blank" rel="noopener">@wickedlyfe_inc</a>
+              on Instagram with your shipping address.
+            </p>
             <div id="cart-pay"></div>
           </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="pay-dialog" class="sheet-dialog" aria-labelledby="pay-title">
+      <div class="sheet sheet-small">
+        <button type="button" class="icon-btn close-btn" data-close="pay-dialog" data-autofocus aria-label="Close payment note">
+          <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+        </button>
+        <div class="sheet-body">
+          <p class="eyebrow">Checkout</p>
+          <h2 id="pay-title">Pay on Jim</h2>
+          <div id="pay-items" class="pay-items"></div>
+          <p class="help" id="pay-instructions">
+            Jim is a payment request link. In the payment note, enter the item name, size, and price. Then DM
+            <a id="pay-ig" href="https://www.instagram.com/wickedlyfe_inc" target="_blank" rel="noopener">@wickedlyfe_inc</a>
+            on Instagram with your shipping address.
+          </p>
+          <a id="pay-continue" class="btn btn-block" href="https://pay.jim.com/wicked-lyfe-inc-llc" target="_blank" rel="noopener">Continue to payment</a>
         </div>
       </div>
     </dialog>

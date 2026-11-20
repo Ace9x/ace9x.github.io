@@ -1,12 +1,13 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm";
 import { buildEmbeds, youtubeId } from "./embeds.js";
 import { SUPABASE_KEY, SUPABASE_URL } from "./config.js";
-import { describeLink, httpsUrl, paymentOptions } from "./payments.js";
+import { httpsUrl, paymentLink } from "./payments.js";
 
 const CART_KEY = "wickedlyfe-cart";
 const TALK_KEY = "wl-talk-at";
-const SETTINGS_COLUMNS =
+const SETTINGS_CORE =
   "id,brand_name,tagline,bio,logo_url,music_url,instagram_url,accent_color,announcement,stripe_link,paypal_link";
+const SETTINGS_COLUMNS = `${SETTINGS_CORE},payment_link`;
 const MUSIC_COLUMNS =
   "id,kind,title,artist,release_type,release_date,artwork_url,blurb,spotify_url,apple_url,youtube_url,page_url,featured,badge,sort_order";
 const IMAGE_TYPES = {
@@ -30,6 +31,7 @@ const state = {
 };
 
 const quick = { id: null, size: null, qty: 1 };
+let checkoutLines = [];
 const dialogToken = new WeakMap();
 
 function prefersReducedMotion() {
@@ -75,17 +77,8 @@ function priceLine(product, qty = 1) {
   if (product.soldOut) {
     return el("span", { class: "price" }, [el("span", { class: "sold-label", text: "Sold out" })]);
   }
-  if (product.priceLabel) {
-    return el("span", { class: "price" }, [
-      product.sample ? el("span", { class: "sample", text: "SAMPLE" }) : "",
-      product.sample ? ` ${product.priceLabel}` : product.priceLabel,
-    ]);
-  }
-  const amount = money(product.price * qty);
-  return el("span", { class: "price" }, [
-    product.sample ? el("span", { class: "sample", text: "SAMPLE" }) : "",
-    product.sample ? ` ${amount}` : amount,
-  ]);
+  if (product.priceLabel) return el("span", { class: "price", text: product.priceLabel });
+  return el("span", { class: "price", text: money(product.price * qty) });
 }
 
 function productById(id) {
@@ -110,7 +103,7 @@ function normalizeProduct(raw) {
     price,
     priceLabel,
     soldOut,
-    sample: raw.sample !== false,
+    sample: Boolean(raw.sample),
     featured: Boolean(raw.featured),
     image: String(raw.image || images[0] || ""),
     images,
@@ -274,9 +267,7 @@ function renderProducts() {
     return `${product.name} ${product.description}`.toLowerCase().includes(query);
   });
   if (!items.length) {
-    const message = query
-      ? `Nothing in the sample catalog matches “${state.query.trim()}”.`
-      : "Add products in data/products.json.";
+    const message = query ? `Nothing matches “${state.query.trim()}”.` : "Nothing in the shop yet.";
     grid.replaceChildren(el("p", { class: "empty", text: message }));
   } else {
     grid.replaceChildren(...items.map((product, index) => productCard(product, index)));
@@ -285,16 +276,13 @@ function renderProducts() {
   const status = $("#filter-status");
   if (status) {
     status.textContent = query
-      ? `${items.length} sample ${items.length === 1 ? "piece" : "pieces"} match ${state.query.trim()}.`
+      ? `${items.length} ${items.length === 1 ? "piece matches" : "pieces match"} ${state.query.trim()}.`
       : "";
   }
   const count = $("#result-count");
   if (count) {
-    const sampleShop = state.products.length > 0 && state.products.every((item) => item.sample);
     const noun = state.products.length === 1 ? "piece" : "pieces";
-    count.textContent = query
-      ? `${items.length} shown`
-      : `${state.products.length} ${sampleShop ? "sample " : ""}${noun}`;
+    count.textContent = query ? `${items.length} shown` : `${state.products.length} ${noun}`;
   }
 }
 
@@ -317,17 +305,13 @@ function productCard(product, index) {
         "data-quick": product.id,
         "aria-label": product.soldOut
           ? `${product.name}, sold out`
-          : `Quick view ${product.name}, sample price ${product.priceLabel || money(product.price)}`,
+          : `View ${product.name}, ${product.priceLabel || money(product.price)}`,
       },
       [
         el("span", { class: "card-media" }, [
           image,
-          product.soldOut
-            ? el("span", { class: "flag sold", text: "Sold out" })
-            : product.sample
-              ? el("span", { class: "flag", text: "Sample" })
-              : null,
-          el("span", { class: "quick-label", text: product.soldOut ? "Sold out" : "Quick view" }),
+          product.soldOut ? el("span", { class: "flag sold", text: "Sold out" }) : null,
+          el("span", { class: "quick-label", text: product.soldOut ? "Sold out" : "View" }),
         ]),
         el("span", { class: "card-name", text: product.name }),
         priceLine(product),
@@ -336,58 +320,61 @@ function productCard(product, index) {
   ]);
 }
 
-function checkoutOptions(product, size) {
-  const own = paymentOptions(product, size);
-  if (own.length || product.sample) return own;
-  const brand = state.brand || {};
-  const options = [];
-  for (const value of [brand.stripe_link, brand.paypal_link]) {
-    const item = describeLink(value);
-    if (item && !options.some((option) => option.href === item.href)) options.push(item);
-  }
-  return options;
+function checkoutUrl() {
+  return paymentLink(state.brand?.payment_link);
 }
 
-function fillPay(container, product, size) {
+function instagramUrl() {
+  return httpsUrl(state.brand?.instagram_url) || httpsUrl("https://www.instagram.com/wickedlyfe_inc");
+}
+
+function applyCheckoutLink() {
+  const link = $("#pay-continue");
+  if (link) {
+    link.href = checkoutUrl();
+    link.target = "_blank";
+    link.rel = "noopener";
+  }
+  const ig = $("#pay-ig");
+  const igUrl = instagramUrl();
+  if (ig && igUrl) ig.href = igUrl.toString();
+}
+
+function paymentNote(className) {
+  const ig = instagramUrl();
+  return el("p", { class: className }, [
+    "Jim is a payment request link. In the payment note, enter the item name, size, and price. Then DM ",
+    ig
+      ? el("a", { href: ig.toString(), target: "_blank", rel: "noopener", text: "@wickedlyfe_inc" })
+      : "@wickedlyfe_inc",
+    " on Instagram with your shipping address.",
+  ]);
+}
+
+function lineSummary(line) {
+  const product = line.product;
+  const price = product.priceLabel || (Number.isFinite(product.price) ? money(product.price) : "");
+  const parts = [product.name, formatSize(line.size)];
+  if (price) parts.push(price);
+  if (line.qty > 1) parts.push(`×${line.qty}`);
+  return parts.join(" · ");
+}
+
+function openPayNote(lines) {
+  const box = $("#pay-items");
+  if (!box || !lines.length) return;
+  applyCheckoutLink();
+  box.replaceChildren(...lines.map((line) => el("p", { text: lineSummary(line) })));
+  openDialog($("#pay-dialog"));
+}
+
+function fillPay(container, product) {
   container.replaceChildren();
   if (product.soldOut) {
     container.append(el("p", { class: "pay-note", text: "Sold out." }));
     return;
   }
-  const options = checkoutOptions(product, size);
-  if (!options.length) {
-    if (!product.sample) {
-      const ig = httpsUrl(state.brand?.instagram_url) || httpsUrl("https://www.instagram.com/wickedlyfe_inc");
-      container.append(
-        el("a", {
-          class: "btn btn-block",
-          href: ig.toString(),
-          target: "_blank",
-          rel: "noopener noreferrer",
-          text: "DM to order",
-        }),
-      );
-      return;
-    }
-    container.append(
-      el("p", {
-        class: "pay-note",
-        text: "Payment link placeholder. Paste a Stripe Payment Link or PayPal URL for this piece in data/products.json.",
-      }),
-    );
-    return;
-  }
-  options.forEach((option) => {
-    container.append(
-      el("a", {
-        class: "btn btn-ghost btn-block",
-        href: option.href,
-        target: "_blank",
-        rel: "noopener noreferrer",
-        text: option.label,
-      }),
-    );
-  });
+  container.append(paymentNote("pay-note"));
 }
 
 function renderQuick() {
@@ -416,7 +403,7 @@ function renderQuick() {
     el("div", { class: "qv" }, [
       el("div", { class: "qv-photo" }, [photo]),
       el("div", { class: "qv-info" }, [
-        el("p", { class: "eyebrow", text: product.soldOut ? "Sold out" : "Sample" }),
+        product.soldOut ? el("p", { class: "eyebrow", text: "Sold out" }) : null,
         el("h2", { id: "qv-name", text: product.name }),
         priceLine(product),
         el("p", { class: "help", text: product.description }),
@@ -449,19 +436,28 @@ function renderQuick() {
             }),
           ]),
         ]),
-        el("button", {
-          type: "button",
-          class: "btn btn-block",
-          "data-add": "true",
-          text: product.soldOut ? "Sold out" : "Add to cart",
-          disabled: product.soldOut ? true : undefined,
-        }),
         pay,
+        product.soldOut
+          ? null
+          : el("button", {
+              type: "button",
+              class: "btn btn-block",
+              "data-buy": "true",
+              text: "Buy",
+            }),
+        product.soldOut
+          ? null
+          : el("button", {
+              type: "button",
+              class: "btn btn-ghost btn-block",
+              "data-add": "true",
+              text: "Add to cart",
+            }),
       ]),
     ]),
   );
   sizes.setAttribute("aria-labelledby", "size-label");
-  fillPay(pay, product, quick.size);
+  fillPay(pay, product);
   $("#quick-view")?.setAttribute("aria-labelledby", "qv-name");
 }
 
@@ -486,7 +482,19 @@ function selectSize(size) {
   if (error) error.textContent = "";
   const product = productById(quick.id);
   const pay = $("#qv-pay");
-  if (product && pay) fillPay(pay, product, size);
+  if (product && pay) fillPay(pay, product);
+}
+
+function buyQuick() {
+  const product = productById(quick.id);
+  if (!product || product.soldOut) return;
+  if (!quick.size) {
+    const error = $("#qv-error");
+    if (error) error.textContent = "Select a size.";
+    $("#quick-view [data-size]")?.focus();
+    return;
+  }
+  openPayNote([{ product, size: quick.size, qty: quick.qty }]);
 }
 
 function addQuick() {
@@ -548,6 +556,8 @@ function renderCart(focusKind, focusId, focusSize) {
       ]),
     );
     foot.hidden = true;
+    checkoutLines = [];
+    $("#cart-pay")?.replaceChildren();
     return;
   }
   foot.hidden = false;
@@ -562,53 +572,29 @@ function renderCart(focusKind, focusId, focusSize) {
   const pay = $("#cart-pay");
   if (pay) {
     pay.replaceChildren();
+    const payable = [];
     state.cart.forEach((line) => {
       const product = productById(line.id);
       if (!product) return;
-      const block = el("div", { class: "pay-line" }, [
-        el("p", {
-          class: "pay-line-name",
-          text: `${product.name} · ${formatSize(line.size)} · ×${line.qty}`,
-        }),
-      ]);
-      const options = checkoutOptions(product, line.size);
-      if (!options.length) {
-        if (product.soldOut) {
-          block.append(el("p", { class: "pay-note", text: "Sold out." }));
-        } else if (!product.sample) {
-          const ig = httpsUrl(state.brand?.instagram_url) || httpsUrl("https://www.instagram.com/wickedlyfe_inc");
-          block.append(
-            el("a", {
-              class: "btn",
-              href: ig.toString(),
-              target: "_blank",
-              rel: "noopener noreferrer",
-              text: "DM to order",
-            }),
-          );
-        } else {
-          block.append(
-            el("p", {
-              class: "pay-note",
-              text: "Payment link placeholder. Paste a Stripe or PayPal URL in data/products.json.",
-            }),
-          );
-        }
-      } else {
-        options.forEach((option) => {
-          block.append(
-            el("a", {
-              class: "btn",
-              href: option.href,
-              target: "_blank",
-              rel: "noopener noreferrer",
-              text: option.label,
-            }),
-          );
-        });
+      if (product.soldOut) {
+        pay.append(el("p", { class: "pay-note", text: `${product.name} is sold out.` }));
+        return;
       }
-      pay.append(block);
+      payable.push({ product, size: line.size, qty: line.qty });
     });
+    checkoutLines = payable;
+    if (payable.length) {
+      pay.append(
+        el("button", {
+          type: "button",
+          class: "btn btn-block",
+          "data-checkout": "true",
+          text: "Checkout",
+        }),
+      );
+    }
+  } else {
+    checkoutLines = [];
   }
   if (focusKind && focusId) {
     const row = items.querySelector(
@@ -1008,7 +994,6 @@ function productFromRow(row) {
     image: images[0] || standInImage(row),
     images,
     sizes: row.sizes,
-    payments: row.buy_url ? { link: row.buy_url } : {},
   });
 }
 
@@ -1051,17 +1036,26 @@ function applyMusicRows(rows) {
   if (videos.length) state.videos = videos;
 }
 
+async function loadSettingsRow() {
+  let result = await supabase.from("wl_settings").select(SETTINGS_COLUMNS).eq("id", 1).maybeSingle();
+  const missingLink = /payment_link/i.test(`${result.error?.message || ""} ${result.error?.details || ""} ${result.error?.hint || ""}`);
+  if (result.error && missingLink) {
+    result = await supabase.from("wl_settings").select(SETTINGS_CORE).eq("id", 1).maybeSingle();
+  }
+  if (result.error) throw result.error;
+  if (!result.data) throw new Error("settings");
+  return result.data;
+}
+
 async function loadRemote() {
-  const [settingsRes, productsRes, musicRes] = await Promise.all([
-    supabase.from("wl_settings").select(SETTINGS_COLUMNS).eq("id", 1).maybeSingle(),
+  const [brand, productsRes, musicRes] = await Promise.all([
+    loadSettingsRow(),
     supabase.from("wl_products").select("*").eq("active", true).order("sort_order", { ascending: true }),
     supabase.from("wl_music").select(MUSIC_COLUMNS).eq("active", true).order("sort_order", { ascending: true }),
   ]);
-  if (settingsRes.error) throw settingsRes.error;
   if (productsRes.error) throw productsRes.error;
-  if (!settingsRes.data) throw new Error("settings");
   return {
-    brand: settingsRes.data,
+    brand,
     products: (productsRes.data || []).map(productFromRow).filter(Boolean),
     music: musicRes.error ? null : musicRes.data,
   };
@@ -1077,11 +1071,9 @@ function applyBrand(brand) {
   const about = $("#about-bio");
   if (about && brand.bio) about.textContent = brand.bio;
   const note = $("#about-note");
-  if (note) {
-    note.textContent = "Shop photos stay as stand-ins until a picture is added. Use DM to order unless a checkout link is set.";
-  }
+  if (note) note.textContent = "Wicked Lyfe is apparel. Sold out pieces stay on the page. In-stock pieces check out on Jim.";
   const shopNote = $("#shop-note");
-  if (shopNote) shopNote.textContent = "Coming soon means the price is not set yet. Sold out pieces stay on the page.";
+  if (shopNote) shopNote.textContent = "Sold out pieces stay on the page. Buy on an in-stock piece pays on Jim.";
   if (brand.brand_name) {
     document.title = `${brand.brand_name} — Apparel`;
     document.querySelectorAll("[data-brand]").forEach((node) => {
@@ -1118,6 +1110,7 @@ function applyBrand(brand) {
     bar.hidden = !text;
     bar.textContent = text;
   }
+  applyCheckoutLink();
 }
 
 async function boot() {
@@ -1143,9 +1136,10 @@ async function boot() {
     if (remote.music) applyMusicRows(remote.music);
   } else {
     state.brand = null;
-    state.products = (catalog.products || []).map((item) => normalizeProduct({ ...item, sample: true })).filter(Boolean);
+    state.products = (catalog.products || []).map((item) => normalizeProduct(item)).filter(Boolean);
   }
   state.cart = loadCart().filter(validLine);
+  applyCheckoutLink();
   applySite();
   renderProducts();
   renderFeatured();
@@ -1225,6 +1219,10 @@ function bind() {
       video.replaceWith(frame);
       return;
     }
+    if (event.target.closest("[data-checkout]")) {
+      openPayNote(checkoutLines);
+      return;
+    }
     const row = event.target.closest("[data-line-id]");
     if (row && event.target.closest("#cart-dialog")) {
       const id = row.dataset.lineId;
@@ -1250,6 +1248,10 @@ function bind() {
       const plus = $("#qv-plus");
       if (minus) minus.disabled = quick.qty <= 1;
       if (plus) plus.disabled = quick.qty >= 10;
+      return;
+    }
+    if (event.target.closest("[data-buy]")) {
+      buyQuick();
       return;
     }
     if (event.target.closest("[data-add]")) addQuick();
